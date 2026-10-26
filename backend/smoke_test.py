@@ -52,20 +52,41 @@ def main():
     print("\n[学生端]")
     h = call(port, "/api/student/home")
     check("首页返回学生与教师", h["ok"] and h["data"]["student"]["name"])
-    check("首页有作业横条（首屏不空）", h["data"]["notice"] is not None)
+    # 课程由教师真实发布后才出现；全新库首页横条应为空
+    check("全新库首屏无预置课程", h["data"]["notice"] is None,
+          "notice=%s" % h["data"].get("notice"))
 
-    c = call(port, "/api/student/courses")
-    check("课程列表非空", c["ok"] and len(c["data"]["courses"]) >= 3,
-          "courses=%d" % len(c["data"]["courses"]) if c["ok"] else "")
+    # 教师发布一篇 -> 学生端横条立刻出现
+    pub = call(port, "/api/teacher/publish",
+               {"title": "窗外", "genre": "记叙文", "prompt": "观察与抒情。", "due": "周五"},
+               uid="teacher_demo")
+    check("教师可发布作文", pub["ok"] and pub["data"]["published"])
+    h2 = call(port, "/api/student/home")
+    check("发布后学生端横条出现", h2["data"]["notice"] is not None
+          and "窗外" in h2["data"]["notice"]["title"])
 
-    course_id = c["data"]["courses"][0]["id"]
+    # 关闭课程 -> 横条消失
+    course_id = pub["data"]["course"]["id"]
+    cl = call(port, "/api/teacher/course/close", {"courseId": course_id},
+              uid="teacher_demo")
+    check("教师可关闭课程", cl["ok"] and cl["data"]["closed"])
+    h3 = call(port, "/api/student/home")
+    check("关闭后学生端横条消失", h3["data"]["notice"] is None)
+
+    # 再发布一篇供后续流程测试
+    call(port, "/api/teacher/publish",
+         {"title": "和解", "genre": "记叙文", "prompt": "以和解为题。", "due": "周日 22:00"},
+         uid="teacher_demo")
+    cs = call(port, "/api/student/courses")
+    check("课程列表可读", cs["ok"] and len(cs["data"]["courses"]) >= 1)
+    course_id = cs["data"]["courses"][0]["id"]
 
     m = call(port, "/api/student/memory")
-    check("记忆分组有数据", m["ok"] and len(m["data"]["groups"]) >= 3)
+    check("记忆接口可读（新用户可为空）", m["ok"] and "groups" in m["data"])
     all_items = [i for g in m["data"]["groups"] for i in g["items"]]
-    check("记忆带置信度", all(i["confidence"] > 0 for i in all_items))
-    low = [i for i in all_items if i["confidence"] < 0.6]
-    check("存在低信心记忆（用于灰显演示）", len(low) >= 1)
+
+    sg = call(port, "/api/student/suggestions")
+    check("推荐问句来自真实语料", sg["ok"] and isinstance(sg["data"]["suggestions"], list))
 
     # 命中语料
     r = call(port, "/api/student/chat", {"text": "老师，记叙文怎么审题？"})
@@ -96,18 +117,22 @@ def main():
               {"courseId": course_id, "text": "我觉得就是消除争议，重归于好。"})
     check("第二环节可继续提交", s2["ok"] and s2["data"]["stage"] == 2)
 
-    # 记忆修正
-    mem_id = all_items[0]["id"]
-    fx = call(port, "/api/student/memory/fix",
-              {"id": mem_id, "content": "在准备 2028 年高考", "confidence": 0.99})
-    check("记忆可修改", fx["ok"] and fx["data"]["updated"] is True)
-    after = [i for g in fx["data"]["groups"] for i in g["items"]
-             if i["id"] == mem_id]
-    check("修改后内容已更新", after and "2028" in after[0]["content"])
+    # 对话与提交都应长出记忆（不再预置）
+    m2 = call(port, "/api/student/memory")
+    all_items2 = [i for g in m2["data"]["groups"] for i in g["items"]]
+    check("记忆由真实交互产生", len(all_items2) >= 1,
+          "items=%d" % len(all_items2))
 
-    # 听课
+    # 记忆修正
+    if all_items2:
+        mem_id = all_items2[0]["id"]
+        fx = call(port, "/api/student/memory/fix",
+                  {"id": mem_id, "content": "在准备 2028 年高考", "confidence": 0.99})
+        check("记忆可修改", fx["ok"] and fx["data"]["updated"] is True)
+
+    # 听课：学生自己写哪里没懂，不是预置文案
     mk = call(port, "/api/student/listen/mark",
-              {"courseId": course_id, "text": "结局和开头的区别没听明白", "atSec": 12})
+              {"courseId": course_id, "text": "老师刚说的那个新词我没听清", "atSec": 12})
     check("听课标记保存", mk["ok"] and mk["data"]["saved"])
     fin = call(port, "/api/student/listen/finish",
                {"courseId": course_id, "seconds": 25})

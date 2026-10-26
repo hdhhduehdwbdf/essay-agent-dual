@@ -16,33 +16,26 @@ DEMO_STUDENT = "student_demo"
 
 
 def seed_if_empty():
+    """只种最少的东西：老师、学生、示例语料引用。
+
+    课程、记忆、听课标记、答不上来的清单全部由真实交互产生：
+    - 课程：教师端发布后才有（teacher_publish_course）
+    - 记忆：学生对话/交稿/听课之后由 memory.add 产生
+    - 未回答清单：学生问了分身答不上来的问题时累积
+    """
     store.init_db()
 
     if not store.q1("SELECT id FROM teachers WHERE id = ?", (DEMO_TEACHER,)):
         store.insert("teachers", {
-            "id": DEMO_TEACHER, "name": "叁月老师", "school": "示例中学",
+            "id": DEMO_TEACHER, "name": "私人教师", "school": "",
             "subject": "语文", "class_code": "638421", "created_at": store.now(),
         })
 
     if not store.q1("SELECT id FROM students WHERE id = ?", (DEMO_STUDENT,)):
         store.insert("students", {
-            "id": DEMO_STUDENT, "name": "林浩", "class_name": "高二（3）班",
+            "id": DEMO_STUDENT, "name": "同学", "class_name": "",
             "teacher_id": DEMO_TEACHER, "created_at": store.now(),
         })
-
-    if not store.q1("SELECT id FROM courses LIMIT 1"):
-        for title, status, stage, prompt, due in [
-            ("和解", "published", 1,
-             "有时候，和解是一个完美的结局；有时候，和解只是一个故事的开头。"
-             "请以「和解」为题，写一篇记叙文。", "周日 22:00"),
-            ("那一刻，我长大了", "closed", 5, "围绕成长瞬间写人记事。", ""),
-            ("窗外", "draft", 0, "观察与抒情类记叙文。", ""),
-        ]:
-            store.insert("courses", {
-                "id": store.new_id("course_"), "teacher_id": DEMO_TEACHER,
-                "title": title, "genre": "记叙文", "prompt": prompt, "due": due,
-                "status": status, "current_stage": stage, "created_at": store.now(),
-            })
 
     if not store.q1("SELECT id FROM materials LIMIT 1"):
         st = brain.stats()
@@ -52,38 +45,6 @@ def seed_if_empty():
                 "title": src.split("/")[-1], "kind": "md",
                 "size_bytes": 0, "status": "ready",
                 "created_at": store.now() - (len(st["sources"]) - i) * 60,
-            })
-
-    if not store.q1("SELECT id FROM memories WHERE student_id = ?", (DEMO_STUDENT,)):
-        for content, type_, conf, src in [
-            ("在准备 2027 年高考", "学业", 0.95, "你在 3 次对话里提到「27 届」"),
-            ("作文想冲到 55 分以上", "学业", 0.82, "你问过「一类文怎么拿」"),
-            ("目前主攻记叙文", "学业", 0.74, "你的《和解》一稿是记叙文"),
-            ("不喜欢空泛议论，喜欢具体例子", "偏好", 0.68, "你 3 次要求「举个人物例子」"),
-            ("写稿偏长句，描写密度偏低，议论偏多", "表达习惯", 0.79, "你的《和解》一稿诊断"),
-            ("高二（3）班，作文课是叁月老师", "事实", 1.0, "学校教务同步"),
-        ]:
-            store.insert("memories", {
-                "id": store.new_id("mem_"), "student_id": DEMO_STUDENT, "type": type_,
-                "content": content, "source": src, "confidence": conf, "pinned": 0,
-                "recall_count": 0, "superseded_by": "",
-                "created_at": store.now(), "last_seen_at": store.now(),
-            })
-        # 一条低信心记忆，用来演示「低信心只作参考」
-        store.insert("memories", {
-            "id": store.new_id("mem_"), "student_id": DEMO_STUDENT, "type": "偏好",
-            "content": "习惯晚上做题", "source": "只出现过两次，信心不高",
-            "confidence": 0.51, "pinned": 0, "recall_count": 0, "superseded_by": "",
-            "created_at": store.now(), "last_seen_at": store.now(),
-        })
-
-    if not store.q1("SELECT id FROM unanswered LIMIT 1"):
-        for text, n in [("2026 新高考卷会考什么方向？", 2),
-                        ("有没有推荐的书单？", 1)]:
-            store.insert("unanswered", {
-                "id": store.new_id("uq_"), "teacher_id": DEMO_TEACHER,
-                "question": text, "ask_count": n,
-                "created_at": store.now(), "resolved": 0,
             })
 
 
@@ -100,12 +61,13 @@ def _teacher(uid):
 
 
 def _course(course_id=None):
+    """默认只取 published 的课程；没有发布的就不显示，而不是回落到草稿。"""
     if course_id:
         c = store.q1("SELECT * FROM courses WHERE id = ?", (course_id,))
         if c:
             return c
-    return store.q1("SELECT * FROM courses WHERE status = 'published' ORDER BY created_at LIMIT 1") \
-        or store.q1("SELECT * FROM courses ORDER BY created_at LIMIT 1")
+    return store.q1(
+        "SELECT * FROM courses WHERE status = 'published' ORDER BY created_at LIMIT 1")
 
 
 def _run(student_id, course_id):
@@ -211,6 +173,12 @@ def student_chat(uid, question):
                                   "翻遍了也找不到老师谈过这个，不能替他编，得说清楚没讲过。")},
     ]
 
+    # 对话本身长出记忆：记的是「学生问过什么」，低信心、只作参考
+    q = (question or "").strip()
+    if q and len(q) >= 4 and "?" not in q and "�" not in q:
+        memory.add(stu["id"], "你问过「%s」" % q[:24], "偏好",
+                   "你自己问过", 0.62)
+
     return {
         "grounded": res["grounded"],
         "mode": res["mode"],
@@ -218,6 +186,7 @@ def student_chat(uid, question):
         "cites": cites,
         "steps": steps,
         "studentName": stu["name"] if stu else "同学",
+        "newMemory": True,
     }
 
 
@@ -476,3 +445,73 @@ def teacher_students(uid):
             out.append({"id": s["id"], "name": s["name"], "className": s["class_name"],
                         "course": "", "stage": 0, "stageName": "未开始", "status": "idle"})
     return {"students": out}
+
+
+def teacher_publish_course(uid, title, genre, prompt, due):
+    """教师发布一篇作文 -> 学生端首页横条立刻出现。"""
+    if not (title or "").strip():
+        return {"error": "标题不能为空"}
+    tch = _teacher(uid)
+    row = {
+        "id": store.new_id("course_"), "teacher_id": tch["id"],
+        "title": title.strip(), "genre": (genre or "记叙文").strip(),
+        "prompt": (prompt or "").strip(), "due": (due or "").strip(),
+        "status": "published", "current_stage": 0, "created_at": store.now(),
+    }
+    store.insert("courses", row)
+    return {"published": True, "course": {"id": row["id"], "title": row["title"]}}
+
+
+def teacher_courses(uid):
+    tch = _teacher(uid)
+    rows = store.q("SELECT * FROM courses WHERE teacher_id = ? ORDER BY created_at DESC",
+                   (tch["id"],))
+    return {"courses": [{
+        "id": c["id"], "title": c["title"], "genre": c["genre"], "prompt": c["prompt"],
+        "due": c["due"], "status": c["status"], "currentStage": c["current_stage"],
+    } for c in rows]}
+
+
+def teacher_close_course(uid, course_id):
+    c = store.q1("SELECT * FROM courses WHERE id = ?", (course_id,))
+    if not c:
+        return {"error": "课程不存在"}
+    store.update("courses", course_id, {"status": "closed"})
+    return {"closed": True}
+
+
+def student_suggestions(uid):
+    """从老师真实语料里抽话题做推荐，统一转成学生口吻的问句。
+
+    没有语料时返回空，前端显示「先上传材料」的引导而不是编一句假的。
+    """
+    import re as _re
+    tch = _teacher(uid)
+    hits = brain.retrieve("作文 怎么 写 审题 立意 结构 描写 选材", top_k=12, min_score=0)
+    out = []
+    seen = set()
+    for h in hits:
+        t = h["text"].strip()
+        # 太长的不像问句；太短的没信息量
+        if not (8 <= len(t) <= 24):
+            continue
+        # 连续陈述/列举不像一个话题
+        if _re.search(r"[。；、]", t[:-1]):
+            continue
+        # 去掉 markdown 残留的标题前缀「XX：」
+        t = _re.sub(r"^[^：]{2,6}：", "", t).strip()
+        # 「关于X」开头的偏书面，去掉前缀
+        t = _re.sub(r"^关于", "", t).strip()
+        if len(t) < 6:
+            continue
+        key = t[:8]
+        if key in seen:
+            continue
+        seen.add(key)
+        # 转成学生口吻的问句
+        if not t.endswith(("怎么选", "怎么写", "怎么办", "怎么分")):
+            t = t + "怎么办？"
+        out.append(t)
+        if len(out) >= 3:
+            break
+    return {"suggestions": out, "teacherName": tch["name"] if tch else "老师"}

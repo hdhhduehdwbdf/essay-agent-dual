@@ -61,6 +61,7 @@
     memoryFix: (id, content, confidence) =>
       request('/api/student/memory/fix', { body: { id: id, content: content, confidence: confidence } }),
     chat: (text) => request('/api/student/chat', { body: { text: text } }),
+    suggestions: () => request('/api/student/suggestions'),
     flow: (courseId) => request('/api/student/flow', { query: { courseId: courseId } }),
     flowSubmit: (courseId, text) =>
       request('/api/student/flow/submit', { body: { courseId: courseId, text: text } }),
@@ -73,6 +74,11 @@
     teacherState: () => request('/api/teacher/state'),
     teacherMaterials: () => request('/api/teacher/materials'),
     teacherStudents: () => request('/api/teacher/students'),
+    teacherCourses: () => request('/api/teacher/courses'),
+    teacherPublish: (title, genre, prompt, due) =>
+      request('/api/teacher/publish', { body: { title: title, genre: genre, prompt: prompt, due: due } }),
+    teacherClose: (courseId) =>
+      request('/api/teacher/course/close', { body: { courseId: courseId } }),
     teacherPreview: (q) => request('/api/teacher/preview', { query: { q: q } }),
     teacherUpload: (filename, content) =>
       request('/api/teacher/upload', { body: { filename: filename, content: content } }),

@@ -1314,9 +1314,9 @@
         <div class="pad" style="padding-top:20px;">
 
           <div class="classcode">
-            <div class="lbl">高二（3）班 · 班级码</div>
-            <div class="code">6 3 8 4 2 1</div>
-            <div class="note">学生打开小程序，输这个码就进你的班</div>
+            <div class="lbl" id="classLabel">班级码</div>
+            <div class="code" id="classCode">· · · · · ·</div>
+            <div class="note">学生打开应用，输这个码就进你的班</div>
           </div>
 
           <div class="preview-shell">
@@ -1324,12 +1324,16 @@
             <div class="preview-phone">
               <div class="pv-head">
                 <div class="n">下午好</div>
-                <div class="s">这是叁月老师的分身，读过他 47 份讲义和录课</div>
+                <div class="s" id="pvIdent">正在读取学生端…</div>
               </div>
-              <div class="pv-body">
-                <div class="pv-notice">
-                  <div class="t">叁月老师布置了《和解》记叙文</div>
-                  <div class="s">截止周日 22:00</div>
+              <div class="pv-body" id="pvBody">
+                <div class="pv-notice" style="display:none;">
+                  <div class="t" id="pvNoticeT"></div>
+                  <div class="s" id="pvNoticeS"></div>
+                </div>
+                <div class="pv-notice" id="pvEmpty" style="background:rgba(255,255,255,.7);border-color:var(--glass-edge);">
+                  <div class="t" style="color:var(--ink-2);">还没有发布的作文</div>
+                  <div class="s" style="color:var(--ink-4);">发一篇，学生进来就有事做</div>
                 </div>
                 <div class="pv-scene">
                   <div class="q">我作文不会写</div>
@@ -1342,6 +1346,12 @@
               </div>
             </div>
           </div>
+
+          <div style="height:14px;"></div>
+          <button class="btn-ghost" onclick="openPublish()" style="height:50px;font-size:14px;color:var(--brand);border-color:var(--brand-line);">
+            ＋ 发布一篇作文给学生
+          </button>
+          <div style="height:12px;"></div>
 
           <div class="next-list">
             <div class="next-item">
@@ -1369,7 +1379,7 @@
 
           <button class="btn-primary" onclick="goStep(6)">进入分身控制台</button>
           <div style="height:10px;"></div>
-          <button class="btn-ghost" onclick="toast('已复制班级码 638421')">复制班级码</button>
+          <button class="btn-ghost" onclick="copyClassCode()">复制班级码</button>
           <div style="height:18px;"></div>
         </div>
       </div>
@@ -1379,8 +1389,8 @@
     <div id="s6" class="screen">
       <div class="page-head">
         <div style="flex:1;">
-          <h1>叁月老师的分身</h1>
-          <div class="sub">高二（3）班 · 已发布</div>
+          <h1 id="consoleTitle">老师的分身</h1>
+          <div class="sub" id="consoleSub">已发布</div>
         </div>
         <button class="back-btn" onclick="goStep(5)" title="回到发布页">‹</button>
       </div>
@@ -1477,6 +1487,48 @@
       <button class="sheet-x" onclick="closeNotes()">✕</button>
     </div>
     <div class="sheet-body" id="notesBody"></div>
+  </div>
+
+  <!-- ==================== 发布作文 ==================== -->
+  <div class="sheet-mask" id="pubMask" onclick="closePublish()"></div>
+  <div class="sheet" id="pubSheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h3>发布一篇作文</h3>
+      <button class="sheet-x" onclick="closePublish()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.65;margin-bottom:14px;">
+        发布后学生端首页立刻出现横条。题目和正文用老师自己的话写。
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.5px;margin-bottom:7px;">题目</div>
+      <input id="pubTitle" placeholder="比如：和解"
+        style="width:100%;border:1px solid var(--glass-edge);background:rgba(255,255,255,.8);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;" />
+
+      <div style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.5px;margin:14px 0 7px;">要求（可留空）</div>
+      <textarea id="pubPrompt" rows="4" placeholder="题目的原话，学生提交时会看到"
+        style="width:100%;border:1px solid var(--glass-edge);background:rgba(255,255,255,.8);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:13px;line-height:1.6;outline:none;resize:none;"></textarea>
+
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.5px;margin:14px 0 7px;">体裁</div>
+          <select id="pubGenre" style="width:100%;border:1px solid var(--glass-edge);background:rgba(255,255,255,.8);border-radius:13px;padding:12px;font-family:inherit;font-size:13px;outline:none;">
+            <option>记叙文</option><option>议论文</option><option>说明文</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.5px;margin:14px 0 7px;">截止（可留空）</div>
+          <input id="pubDue" placeholder="比如：周日 22:00"
+            style="width:100%;border:1px solid var(--glass-edge);background:rgba(255,255,255,.8);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:13px;outline:none;" />
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin-top:18px;height:48px;" onclick="submitPublish()">发布给学生</button>
+      <div style="height:8px;"></div>
+      <button class="btn-ghost" onclick="closePublish()">先不发布</button>
+      <div style="height:10px;"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -1705,7 +1757,7 @@ function addUser(container, text) {
 function addExpert(container, html) {
   const el = document.createElement('div');
   el.className = 'msg';
-  el.innerHTML = `<div class="msg-avatar">叁</div><div class="bubble">${html}</div>`;
+  el.innerHTML = `<div class="msg-avatar">师</div><div class="bubble">${html}</div>`;
   container.appendChild(el);
   el.querySelectorAll('.cite').forEach(c =>
     c.addEventListener('click', () => toast('能看到它引了你的哪一段，这是关键')));
@@ -1859,6 +1911,79 @@ function resolveTop() {
   }).catch(err => toast('操作失败：' + err.message));
 }
 
+/* =========================================================
+   发布作文（真实写入后端 -> 学生端首页立刻出现）
+   ========================================================= */
+function openPublish() {
+  $('pubTitle').value = '';
+  $('pubPrompt').value = '';
+  $('pubDue').value = '';
+  $('pubMask').classList.add('open');
+  $('pubSheet').classList.add('open');
+  setTimeout(() => $('pubTitle').focus(), 260);
+}
+
+function closePublish() {
+  $('pubMask').classList.remove('open');
+  $('pubSheet').classList.remove('open');
+}
+
+function submitPublish() {
+  const title = $('pubTitle').value.trim();
+  if (!title) { toast('题目不能为空'); return; }
+  const genre = $('pubGenre').value;
+  const prompt = $('pubPrompt').value.trim();
+  const due = $('pubDue').value.trim();
+
+  API.teacherPublish(title, genre, prompt, due).then(() => {
+    closePublish();
+    toast('已发布《' + title + '》· 学生端首页会立刻出现');
+    loadPreview();
+  }).catch(err => toast('发布失败：' + err.message));
+}
+
+/* =========================================================
+   学生端真实预览（数据来自后端，不是写死的）
+   ========================================================= */
+function loadPreview() {
+  // 教师身份查询 student_home 会回落到演示学生，这正是「学生看到的」
+  // 同时把老师名/班级名/班级码一并填进各处静态位置
+  return Promise.all([API.home(), API.teacherState()]).then(([data, st]) => {
+    const tchName = st.teacher.name;
+
+    $('consoleTitle').textContent = tchName + '的分身';
+    $('consoleSub').textContent = (data.student.className || '我的班级') + ' · 已发布';
+
+    const code = (st.teacher.classCode || '');
+    $('classCode').textContent = code ? code.split('').join(' ') : '· · · · · ·';
+
+    $('pvIdent').textContent = '这是' + tchName + '老师的分身，读过他 '
+      + data.teacher.materialCount + ' 份讲义';
+    const notice = data.notice;
+    if (notice) {
+      $('pvEmpty').style.display = 'none';
+      const n = document.querySelector('#pvBody .pv-notice');
+      n.style.display = 'block';
+      $('pvNoticeT').textContent = notice.title;
+      $('pvNoticeS').textContent = notice.due ? '截止' + notice.due : '';
+    } else {
+      $('pvEmpty').style.display = 'block';
+      document.querySelector('#pvBody .pv-notice').style.display = 'none';
+    }
+  }).catch(() => {
+    $('pvIdent').textContent = '学生端预览暂不可用';
+  });
+}
+
+function copyClassCode() {
+  API.teacherState().then(data => {
+    const code = (data.teacher.classCode || '').replace(/(.)(?=.)/g, '$1 ');
+    if (navigator.clipboard) navigator.clipboard.writeText(data.teacher.classCode || '');
+    $('classCode').textContent = code || '· · · · · ·';
+    toast('班级码已复制：' + data.teacher.classCode);
+  }).catch(err => toast('读取班级码失败：' + err.message));
+}
+
 function escapeHtml(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -1879,6 +2004,7 @@ function escapeHtml(s) {
   loadMaterials();
   loadConsole();
   loadStudents();
+  loadPreview();
 })();
 
 /* =========================================================

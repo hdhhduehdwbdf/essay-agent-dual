@@ -102,10 +102,12 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/student/home": lambda: api.student_home(uid),
                 "/api/student/courses": lambda: api.student_courses(uid),
                 "/api/student/memory": lambda: api.student_memory(uid),
+                "/api/student/suggestions": lambda: api.student_suggestions(uid),
                 "/api/student/flow": lambda: api.flow_state(uid, qs.get("courseId")),
                 "/api/teacher/state": lambda: api.teacher_state(uid),
                 "/api/teacher/materials": lambda: api.teacher_materials(uid),
                 "/api/teacher/students": lambda: api.teacher_students(uid),
+                "/api/teacher/courses": lambda: api.teacher_courses(uid),
                 "/api/teacher/preview": lambda: api.teacher_preview(uid, qs.get("q", "")),
             }
             fn = routes.get(path)
@@ -167,6 +169,15 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/teacher/resolve":
                 return self._send(200, _ok(
                     api.teacher_resolve(uid, body.get("question") or "")))
+
+            if path == "/api/teacher/publish":
+                return self._send(200, _ok(api.teacher_publish_course(
+                    uid, body.get("title") or "", body.get("genre") or "记叙文",
+                    body.get("prompt") or "", body.get("due") or "")))
+
+            if path == "/api/teacher/course/close":
+                return self._send(200, _ok(
+                    api.teacher_close_course(uid, body.get("courseId") or "")))
 
             return self._send(404, _err("未知接口 %s" % path, "not_found"))
 
