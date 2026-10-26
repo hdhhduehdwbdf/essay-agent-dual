@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>作文分身 · 学生端</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  /* =========================================================
+     设计令牌：与教师端完全一致
+     ========================================================= */
+  :root {
+    --brand:#f97316;
+    --brand-2:#fbbf24;
+    --brand-ink:#9a3412;
+    --brand-soft:rgba(255,241,230,.66);
+    --brand-line:rgba(253,186,116,.62);
+
+    --ink:#1c1c1e;
+    --ink-2:#48484a;
+    --ink-3:rgba(60,60,67,.56);
+    --ink-4:rgba(60,60,67,.34);
+
+    --hairline:rgba(60,60,67,.09);
+    --white:#fff;
+
+    --glass:rgba(255,255,255,.66);
+    --glass-2:rgba(255,255,255,.78);
+    --glass-3:rgba(255,255,255,.9);
+    --glass-edge:rgba(255,255,255,.92);
+    --glass-shadow:0 8px 30px rgba(31,41,55,.06), inset 0 1px 0 rgba(255,255,255,.98);
+    --glass-shadow-sm:0 4px 16px rgba(31,41,55,.045), inset 0 1px 0 rgba(255,255,255,.96);
+
+    --good:#0f9d63;
+    --good-soft:rgba(240,253,244,.82);
+    --good-line:rgba(167,243,208,.8);
+    --warn:#d97706;
+    --warn-soft:rgba(255,251,235,.72);
+    --warn-line:rgba(253,230,138,.85);
+    --bad:#dc2626;
+  }
+
+  html, body { height:100%; }
+
+  body {
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+                "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 20% 10%, #e8eef8 0%, transparent 45%),
+      radial-gradient(circle at 85% 85%, #f0ecf8 0%, transparent 45%),
+      #e3e7ef;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    padding:24px;
+  }
+
+  /* =========================================================
+     iPhone 17 机身
+     ========================================================= */
+  .phone {
+    position:relative;
+    width:393px;
+    height:min(852px, calc(100vh - 48px));
+    border-radius:58px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    flex-shrink:0;
+    background:#fdfdff;
+    box-shadow:
+      0 0 0 1.5px rgba(255,255,255,.55),
+      0 0 0 12px #0c0d0f,
+      0 0 0 13.5px #3c4046,
+      0 44px 90px rgba(15,23,42,.32);
+  }
+
+  /* 扎染渐变底：铺在机身层 */
+  .phone::before {
+    content:'';
+    position:absolute; inset:-25%;
+    z-index:0;
+    background:
+      radial-gradient(circle at 16% 10%,  rgba(255,214,180,.58), transparent 42%),
+      radial-gradient(circle at 84% 6%,   rgba(205,224,250,.56), transparent 46%),
+      radial-gradient(circle at 72% 44%,  rgba(255,238,204,.44), transparent 40%),
+      radial-gradient(circle at 14% 62%,  rgba(214,244,232,.48), transparent 42%),
+      radial-gradient(circle at 88% 82%,  rgba(232,216,250,.46), transparent 44%),
+      radial-gradient(circle at 44% 92%,  rgba(255,224,210,.40), transparent 42%),
+      radial-gradient(circle at 50% 38%,  rgba(255,255,255,1), transparent 66%);
+    filter:blur(46px) saturate(112%);
+    animation:dye 36s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes dye {
+    0%   { transform:translate3d(0,0,0) scale(1); }
+    100% { transform:translate3d(2%,-1.5%,0) scale(1.05); }
+  }
+
+  /* 玻璃噪点 */
+  .phone::after {
+    content:'';
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    opacity:.12;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+
+  .island {
+    position:absolute;
+    top:11px; left:50%; transform:translateX(-50%);
+    width:114px; height:33px;
+    border-radius:19px;
+    background:#07080a;
+    z-index:80;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .island::after {
+    content:'';
+    position:absolute; right:11px; top:11px;
+    width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #2c3a4a, #0a0d11 70%);
+    box-shadow:0 0 0 1px rgba(120,160,200,.22);
+  }
+
+  .statusbar {
+    height:54px; flex-shrink:0;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding:0 28px 9px;
+    font-size:15px; font-weight:600;
+    letter-spacing:.2px;
+    position:relative; z-index:60;
+  }
+  .statusbar .right { display:flex; align-items:center; gap:5px; }
+  .sb-bar { width:3px; border-radius:1px; background:var(--ink); }
+  .notes-btn {
+    width:21px; height:21px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.9);
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    color:var(--ink-3); font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; margin-left:7px;
+  }
+  .notes-btn:active { background:rgba(255,255,255,.9); }
+
+  .app {
+    flex:1; position:relative; overflow:hidden;
+    z-index:2;
+  }
+
+  .screen {
+    position:absolute; inset:0;
+    display:none; flex-direction:column;
+    overflow:hidden;
+  }
+  .screen.active { display:flex; }
+
+  .scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .scroll::-webkit-scrollbar { width:0; }
+
+  /* =========================================================
+     顶栏（玻璃）
+     ========================================================= */
+  .page-head {
+    flex-shrink:0;
+    padding:12px 20px 13px;
+    display:flex; align-items:center; gap:11px;
+    background:rgba(255,255,255,.42);
+    backdrop-filter:blur(28px) saturate(180%);
+    -webkit-backdrop-filter:blur(28px) saturate(180%);
+    border-bottom:1px solid rgba(255,255,255,.6);
+    box-shadow:0 1px 0 rgba(60,60,67,.04);
+  }
+  .page-head h1 { font-size:17px; font-weight:700; letter-spacing:-.35px; }
+  .page-head .sub { font-size:11.5px; color:var(--ink-3); margin-top:2px; line-height:1.45; }
+
+  .back-btn {
+    width:34px; height:34px; border-radius:12px;
+    border:1px solid var(--glass-edge);
+    background:var(--glass-2);
+    backdrop-filter:blur(16px) saturate(160%);
+    -webkit-backdrop-filter:blur(16px) saturate(160%);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--ink-2); font-size:16px; cursor:pointer; flex-shrink:0;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .back-btn:active { background:var(--glass-3); transform:scale(.96); }
+
+  .pad { padding:16px 20px; }
+
+  /* =========================================================
+     底部 Tab（重玻璃）
+     ========================================================= */
+  .tabbar {
+    flex-shrink:0; height:64px;
+    display:flex; align-items:center;
+    background:rgba(255,255,255,.56);
+    backdrop-filter:blur(32px) saturate(190%);
+    -webkit-backdrop-filter:blur(32px) saturate(190%);
+    border-top:1px solid rgba(255,255,255,.85);
+    box-shadow:0 -1px 0 rgba(60,60,67,.05);
+    padding-bottom:12px;
+    z-index:55;
+    position:relative;
+  }
+  .tab {
+    flex:1; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    color:var(--ink-4); font-size:10px; font-weight:500;
+    cursor:pointer; border:none; background:transparent;
+    font-family:inherit;
+    transition:color .16s;
+  }
+  .tab .ic { font-size:18px; line-height:1; filter:grayscale(.85); opacity:.62; transition:.16s; }
+  .tab.active { color:var(--brand); font-weight:700; }
+  .tab.active .ic { filter:none; opacity:1; transform:translateY(-1px); }
+  .tab:active { background:rgba(255,255,255,.35); }
+
+  /* =========================================================
+     首页
+     ========================================================= */
+  .home-hero { padding:20px 20px 16px; }
+  .hero-claim {
+    font-size:27px; font-weight:750;
+    letter-spacing:-.9px; line-height:1.26;
+    margin-bottom:7px;
+  }
+  .hero-ident {
+    font-size:12px; color:var(--ink-3); line-height:1.6;
+  }
+
+  /* 老师作业横条：首屏绝不空 */
+  .notice {
+    margin:0 20px 16px;
+    background:linear-gradient(150deg, rgba(255,247,237,.94), rgba(255,241,230,.82));
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--brand-line);
+    border-radius:20px;
+    padding:14px 15px;
+    display:flex; align-items:center; gap:12px;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(249,115,22,.11), inset 0 1px 0 rgba(255,255,255,.95);
+    transition:transform .13s;
+  }
+  .notice:active { transform:scale(.985); }
+  .notice-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--brand); flex-shrink:0;
+    box-shadow:0 0 0 4px rgba(249,115,22,.15);
+  }
+  .notice-body { flex:1; min-width:0; }
+  .notice-title {
+    font-size:13.5px; font-weight:700; color:var(--brand-ink);
+    letter-spacing:-.2px; line-height:1.4;
+  }
+  .notice-sub { font-size:11px; color:#c2410c; opacity:.85; margin-top:3px; line-height:1.45; }
+  .notice-go { font-size:11.5px; font-weight:700; color:var(--brand); flex-shrink:0; }
+
+  /* 场景卡：写用户的话 */
+  .scene-label {
+    padding:0 20px 10px;
+    font-size:11px; font-weight:700; color:var(--ink-3);
+    letter-spacing:.5px;
+  }
+  .scenes { padding:0 20px; display:flex; flex-direction:column; gap:11px; }
+  .scene {
+    background:var(--glass);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:20px;
+    padding:16px;
+    display:flex; align-items:center; gap:13px;
+    cursor:pointer; text-align:left;
+    box-shadow:var(--glass-shadow);
+    transition:transform .13s, box-shadow .18s;
+  }
+  .scene:active {
+    transform:scale(.98);
+    box-shadow:0 4px 14px rgba(31,41,55,.05), inset 0 1px 0 rgba(255,255,255,.98);
+  }
+  .scene-ic {
+    width:42px; height:42px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px; flex-shrink:0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 3px 10px rgba(31,41,55,.05);
+  }
+  .scene-body { flex:1; min-width:0; }
+  .scene-q {
+    font-size:14.5px; font-weight:700; color:var(--ink);
+    letter-spacing:-.25px;
+  }
+  .scene-a { font-size:11.5px; color:var(--ink-3); margin-top:4px; line-height:1.55; }
+  .scene-arrow { color:var(--ink-4); font-size:16px; flex-shrink:0; }
+
+  /* 输入区（降级为兜底） */
+  .composer-wrap {
+    padding:14px 20px 12px;
+  }
+  .composer-hint {
+    font-size:10.5px; color:var(--ink-4);
+    text-align:center; margin-bottom:9px;
+  }
+  .composer {
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:22px;
+    padding:13px 13px 11px;
+    box-shadow:var(--glass-shadow);
+  }
+  .composer textarea {
+    width:100%; border:none; outline:none; resize:none;
+    font-size:13.5px; font-family:inherit; color:var(--ink);
+    line-height:1.55; max-height:80px; min-height:20px;
+    background:transparent;
+  }
+  .composer textarea::placeholder { color:var(--ink-4); }
+  .composer-row { display:flex; align-items:center; gap:7px; margin-top:10px; }
+  .chip-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    height:30px; padding:0 11px; border-radius:10px;
+    border:1px solid var(--glass-edge);
+    background:rgba(255,255,255,.82);
+    font-size:11.5px; font-weight:600; color:var(--ink-2);
+    cursor:pointer; font-family:inherit;
+    box-shadow:0 2px 6px rgba(31,41,55,.04);
+  }
+  .chip-btn:active { background:#fff; transform:scale(.97); }
+  .send-btn {
+    margin-left:auto;
+    width:36px; height:36px; border-radius:12px;
+    border:none; cursor:pointer;
+    background:linear-gradient(160deg,#ffbe5c,var(--brand));
+    color:#fff; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 5px 14px rgba(249,115,22,.34), inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .send-btn:active { transform:scale(.95); }
+
+  /* =========================================================
+     聊天气泡
+     ========================================================= */
+  .chat-stream {
+    padding:15px 16px 22px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .msg { display:flex; gap:9px; animation:fadeUp .24s ease-out; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+
+  .msg-avatar {
+    width:28px; height:28px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    background:linear-gradient(150deg, rgba(255,241,230,.98), rgba(255,224,194,.92));
+    color:#c2410c;
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 3px 9px rgba(249,115,22,.15);
+  }
+  .msg.user { flex-direction:row-reverse; }
+  .msg.user .msg-avatar {
+    background:linear-gradient(150deg, rgba(238,242,255,.98), rgba(224,231,255,.92));
+    color:#4338ca; border-color:rgba(255,255,255,.9);
+    box-shadow:0 3px 9px rgba(99,102,241,.14);
+  }
+  .bubble {
+    max-width:80%;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px; border-bottom-left-radius:7px;
+    padding:11px 13px;
+    font-size:13px; line-height:1.76;
+    word-break:break-word;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .msg.user .bubble {
+    background:linear-gradient(150deg, rgba(255,240,228,.9), rgba(255,232,214,.82));
+    border-color:rgba(253,186,116,.6);
+    color:#7c2d12;
+    border-radius:18px; border-bottom-right-radius:7px;
+    box-shadow:0 4px 16px rgba(249,115,22,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .bubble b { font-weight:700; }
+  .bubble .hl { color:#c2410c; font-weight:650; }
+  .bubble-card {
+    max-width:88%;
+    border-radius:18px;
+    border:1px solid var(--glass-edge);
+    background:rgba(255,255,255,.76);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    overflow:hidden;
+    box-shadow:var(--glass-shadow-sm);
+  }
+
+  .cite {
+    display:inline-block; font-size:9px; font-weight:700;
+    color:var(--brand); background:rgba(255,247,237,.95);
+    border:1px solid var(--brand-line); border-radius:6px;
+    padding:0 4px; margin:0 1px; cursor:pointer;
+    vertical-align:1px; line-height:1.55;
+  }
+
+  /* 思考卡 */
+  .think-card {
+    max-width:94%;
+    border:1px solid rgba(232,228,242,.9);
+    background:rgba(251,250,255,.72);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-radius:17px; overflow:hidden;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .think-head {
+    display:flex; align-items:center; gap:7px;
+    padding:11px 13px; cursor:pointer;
+    font-size:11.5px; font-weight:600; color:#6d5f8f;
+    user-select:none;
+  }
+  .think-head .chev { margin-left:auto; font-size:10px; color:#a99cc4; transition:transform .18s; }
+  .think-card.collapsed .think-head .chev { transform:rotate(-90deg); }
+  .think-body {
+    padding:10px 13px 13px;
+    display:flex; flex-direction:column; gap:8px;
+    border-top:1px solid rgba(240,236,249,.9);
+  }
+  .think-card.collapsed .think-body { display:none; }
+  .think-card.done { background:rgba(250,250,251,.66); border-color:var(--glass-edge); }
+  .think-card.done .think-head { color:var(--ink-3); }
+
+  .t-step { display:flex; gap:7px; font-size:11px; line-height:1.64; color:#5b5470; }
+  .t-step .tic { flex-shrink:0; font-size:11px; opacity:.8; margin-top:1px; }
+  .t-step.tool {
+    color:var(--ink-3); align-items:center; padding:6px 9px;
+    background:rgba(255,255,255,.72);
+    border:1px solid var(--glass-edge);
+    border-radius:10px; font-size:10.5px;
+  }
+  .t-step.tool .meta { margin-left:auto; font-size:9.5px; color:var(--ink-4); }
+
+  .spin {
+    width:10px; height:10px; flex-shrink:0;
+    border:1.5px solid rgba(160,150,190,.35);
+    border-top-color:#8b7bb8;
+    border-radius:50%; animation:spin .8s linear infinite; margin-top:2px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* 记忆更新提示 */
+  .mem-hint {
+    background:rgba(252,253,254,.8);
+    backdrop-filter:blur(20px) saturate(170%);
+    -webkit-backdrop-filter:blur(20px) saturate(170%);
+    border:1px dashed rgba(120,120,128,.28);
+    border-radius:14px;
+    padding:10px 12px;
+    font-size:11px; color:var(--ink-2);
+    line-height:1.6;
+    cursor:pointer;
+    box-shadow:0 3px 12px rgba(31,41,55,.04);
+  }
+  .mem-hint .lbl { color:var(--good); font-weight:700; }
+
+  /* =========================================================
+     流程页
+     ========================================================= */
+  .flow-head {
+    flex-shrink:0;
+    background:rgba(255,255,255,.42);
+    backdrop-filter:blur(28px) saturate(180%);
+    -webkit-backdrop-filter:blur(28px) saturate(180%);
+    border-bottom:1px solid rgba(255,255,255,.6);
+    padding:11px 15px 13px;
+    box-shadow:0 1px 0 rgba(60,60,67,.04);
+  }
+  .flow-title-row { display:flex; align-items:center; gap:11px; }
+  .flow-title { font-size:14.5px; font-weight:700; letter-spacing:-.2px; }
+  .flow-progress { margin-top:11px; }
+  .flow-progress-top {
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; color:var(--ink-3); margin-bottom:7px;
+  }
+  .flow-progress-top b { color:var(--brand); font-weight:700; }
+  .flow-bar {
+    height:5px; border-radius:3px;
+    background:rgba(120,120,128,.14);
+    overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.06);
+  }
+  .flow-bar > i {
+    display:block; height:100%;
+    background:linear-gradient(90deg,#ffc266,var(--brand));
+    border-radius:3px;
+    box-shadow:0 0 8px rgba(249,115,22,.45);
+    transition:width .5s cubic-bezier(.3,.9,.3,1);
+  }
+
+  /* =========================================================
+     课程列表
+     ========================================================= */
+  .course {
+    background:var(--glass);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:20px;
+    padding:16px;
+    display:flex; flex-direction:column; gap:10px;
+    cursor:pointer;
+    box-shadow:var(--glass-shadow);
+    transition:transform .13s;
+  }
+  .course:active { transform:scale(.985); }
+  .course.off { opacity:.68; cursor:default; }
+  .course-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .course-t { font-size:16px; font-weight:750; letter-spacing:-.4px; }
+  .course-d { font-size:11.5px; color:var(--ink-3); line-height:1.65; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag {
+    font-size:10px; font-weight:650;
+    padding:3px 8px; border-radius:7px;
+    border:1px solid var(--glass-edge);
+    background:rgba(255,255,255,.75);
+    color:var(--ink-3);
+  }
+  .tag.live {
+    color:var(--good); background:rgba(236,253,245,.9);
+    border-color:var(--good-line);
+  }
+  .course-cta { font-size:11.5px; font-weight:700; color:var(--brand); flex-shrink:0; }
+
+  /* =========================================================
+     分段控件
+     ========================================================= */
+  .seg {
+    display:flex; gap:4px;
+    padding:4px; margin:13px 20px 0;
+    background:rgba(120,120,128,.12);
+    border:1px solid rgba(255,255,255,.7);
+    border-radius:13px;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.05);
+  }
+  .seg button {
+    flex:1; height:32px; border:none; border-radius:10px;
+    background:transparent; font-family:inherit;
+    font-size:12.5px; font-weight:600; color:var(--ink-3);
+    cursor:pointer; transition:.18s;
+  }
+  .seg button.on {
+    background:rgba(255,255,255,.92);
+    color:var(--ink);
+    box-shadow:0 1px 5px rgba(31,41,55,.1), inset 0 1px 0 #fff;
+    font-weight:700;
+  }
+
+  /* =========================================================
+     记忆
+     ========================================================= */
+  .mem-group { margin-top:20px; }
+  .mem-group-t {
+    font-size:11px; font-weight:700; color:var(--ink-3);
+    letter-spacing:.6px; margin-bottom:9px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .mem-item {
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:16px;
+    padding:13px 14px;
+    margin-bottom:9px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .mem-item.low { background:rgba(252,252,253,.62); }
+  .mem-txt { font-size:12.5px; line-height:1.6; color:var(--ink); letter-spacing:-.1px; }
+  .mem-item.low .mem-txt { color:var(--ink-2); }
+  .mem-meta { display:flex; align-items:center; gap:8px; margin-top:9px; }
+  .conf {
+    flex:1; height:4px; border-radius:2px;
+    background:rgba(120,120,128,.15);
+    overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.05);
+  }
+  .conf > i {
+    display:block; height:100%; border-radius:2px;
+    background:linear-gradient(90deg,#34d399,var(--good));
+  }
+  .mem-item.low .conf > i { background:linear-gradient(90deg,#cbd5e1,#94a3b8); }
+  .conf-n {
+    font-size:10.5px; color:var(--ink-4);
+    font-weight:650; flex-shrink:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .mem-fix {
+    border:none; background:transparent; font-family:inherit;
+    font-size:10.5px; color:var(--brand); font-weight:700;
+    cursor:pointer; padding:2px 0; flex-shrink:0;
+  }
+  .mem-src { font-size:10px; color:var(--ink-4); margin-top:7px; line-height:1.5; }
+  .mem-conflict {
+    margin-top:9px; padding:8px 10px;
+    background:rgba(255,251,235,.85);
+    border:1px solid var(--warn-line);
+    border-radius:9px; font-size:10.5px; color:#92400e;
+    line-height:1.55;
+  }
+
+  .learned {
+    margin-top:22px;
+    background:linear-gradient(150deg, rgba(240,253,244,.9), rgba(236,253,245,.78));
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid var(--good-line);
+    border-radius:18px;
+    padding:15px;
+    box-shadow:0 6px 20px rgba(16,185,129,.08), inset 0 1px 0 rgba(255,255,255,.92);
+  }
+  .learned-t {
+    font-size:12px; font-weight:700; color:#047857;
+    margin-bottom:8px; letter-spacing:-.1px;
+  }
+  .learned ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .learned li {
+    font-size:11.5px; color:#065f46; line-height:1.6;
+    padding-left:13px; position:relative;
+  }
+  .learned li::before {
+    content:''; position:absolute; left:2px; top:7px;
+    width:5px; height:5px; border-radius:50%; background:var(--good);
+  }
+
+  /* 空状态 */
+  .empty { padding:44px 28px; text-align:center; }
+  .empty-ic { font-size:34px; opacity:.35; margin-bottom:15px; }
+  .empty-why { font-size:13px; font-weight:650; color:var(--ink-2); line-height:1.65; }
+  .empty-ex { margin-top:18px; display:flex; flex-direction:column; gap:8px; }
+  .empty-ex button {
+    width:100%; text-align:left;
+    padding:12px 13px;
+    border:1px solid var(--glass-edge); border-radius:14px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(20px) saturate(170%);
+    -webkit-backdrop-filter:blur(20px) saturate(170%);
+    font-family:inherit;
+    font-size:12px; color:var(--ink-2);
+    cursor:pointer; line-height:1.5;
+    box-shadow:0 3px 12px rgba(31,41,55,.04);
+  }
+  .empty-ex button:active { background:#fff; transform:scale(.985); }
+  .empty-ex button span { color:var(--brand); font-weight:700; }
+
+  /* =========================================================
+     浮层：全屏页
+     ========================================================= */
+  .overlay {
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 16% 8%,  rgba(255,224,196,.55), transparent 46%),
+      radial-gradient(circle at 84% 10%, rgba(216,231,252,.55), transparent 48%),
+      radial-gradient(circle at 20% 70%, rgba(222,246,236,.5), transparent 46%),
+      radial-gradient(circle at 86% 84%, rgba(238,224,252,.48), transparent 48%),
+      linear-gradient(180deg, #fdfdff, #fbfcff 60%, #fdfdff);
+    display:none; flex-direction:column;
+    z-index:80;
+    animation:slideIn .26s cubic-bezier(.3,.9,.3,1);
+  }
+  .overlay.open { display:flex; }
+  @keyframes slideIn { from { transform:translateY(16px); opacity:0; } to { transform:none; opacity:1; } }
+
+  /* =========================================================
+     Bottom Sheet（重玻璃）
+     ========================================================= */
+  .sheet-mask {
+    position:absolute; inset:0;
+    background:rgba(20,26,36,.3);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+    display:none; z-index:90;
+    animation:fadeIn .2s;
+  }
+  .sheet-mask.open { display:block; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .sheet {
+    position:absolute; left:0; right:0; bottom:0;
+    max-height:80%;
+    background:rgba(252,253,255,.82);
+    backdrop-filter:blur(44px) saturate(190%);
+    -webkit-backdrop-filter:blur(44px) saturate(190%);
+    border-radius:30px 30px 0 0;
+    border-top:1px solid rgba(255,255,255,.9);
+    box-shadow:0 -12px 44px rgba(15,23,42,.16);
+    display:none; flex-direction:column; z-index:91;
+    animation:sheetUp .3s cubic-bezier(.3,.9,.3,1);
+  }
+  .sheet.open { display:flex; }
+  @keyframes sheetUp { from { transform:translateY(100%); } to { transform:none; } }
+  .sheet-grip {
+    width:38px; height:5px; border-radius:3px;
+    background:rgba(120,120,128,.26);
+    margin:10px auto 0; flex-shrink:0;
+  }
+  .sheet-head {
+    padding:13px 20px 11px;
+    display:flex; align-items:center; gap:9px;
+    border-bottom:1px solid var(--hairline);
+    flex-shrink:0;
+  }
+  .sheet-head h3 { font-size:15px; font-weight:700; letter-spacing:-.3px; flex:1; }
+  .sheet-body { flex:1; overflow-y:auto; padding:15px 20px 30px; }
+  .sheet-x {
+    width:28px; height:28px; border-radius:50%; border:none;
+    background:rgba(120,120,128,.13); color:var(--ink-3);
+    font-size:13px; cursor:pointer; flex-shrink:0;
+  }
+
+  .ref-item {
+    padding:13px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  .ref-item:last-child { border-bottom:none; }
+  .ref-src {
+    display:flex; align-items:center; gap:6px;
+    font-size:10px; color:var(--ink-3); margin-bottom:6px;
+  }
+  .ref-src .badge {
+    width:16px; height:16px; border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; color:#fff;
+  }
+  .ref-t { font-size:12.5px; font-weight:700; line-height:1.5; margin-bottom:5px; letter-spacing:-.1px; }
+  .ref-d { font-size:11.5px; color:var(--ink-3); line-height:1.68; }
+
+  /* =========================================================
+     帮我听
+     ========================================================= */
+  .listen-body {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:0 26px; gap:20px;
+  }
+  .listen-label { font-size:12px; color:var(--ink-3); letter-spacing:.3px; }
+  .mic {
+    width:110px; height:110px; border-radius:50%;
+    background:linear-gradient(160deg,#ffbe5c,var(--brand));
+    display:flex; align-items:center; justify-content:center;
+    font-size:38px;
+    box-shadow:
+      0 0 0 12px rgba(249,115,22,.1),
+      0 0 0 26px rgba(249,115,22,.05),
+      inset 0 2px 0 rgba(255,255,255,.4),
+      0 12px 34px rgba(249,115,22,.28);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow:0 0 0 12px rgba(249,115,22,.1), 0 0 0 26px rgba(249,115,22,.05), inset 0 2px 0 rgba(255,255,255,.4), 0 12px 34px rgba(249,115,22,.28); }
+    50% { box-shadow:0 0 0 17px rgba(249,115,22,.13), 0 0 0 35px rgba(249,115,22,.04), inset 0 2px 0 rgba(255,255,255,.4), 0 14px 40px rgba(249,115,22,.32); }
+  }
+  .wave { display:flex; align-items:center; gap:3px; height:28px; }
+  .wave i {
+    width:3px; border-radius:2px;
+    background:var(--brand); opacity:.55;
+    animation:wv 1.1s ease-in-out infinite;
+  }
+  @keyframes wv { 0%,100% { height:6px; } 50% { height:22px; } }
+
+  .listen-transcript {
+    width:100%;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px;
+    padding:13px 14px;
+    font-size:11.5px; color:var(--ink-2); line-height:1.7;
+    max-height:108px; overflow-y:auto;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .listen-transcript p { margin-bottom:9px; }
+  .listen-transcript p:last-child { margin-bottom:0; }
+
+  .mark-btn {
+    width:100%; height:48px; border-radius:15px;
+    border:1px solid var(--brand-line);
+    background:linear-gradient(150deg, rgba(255,247,237,.92), rgba(255,241,230,.8));
+    backdrop-filter:blur(20px) saturate(170%);
+    -webkit-backdrop-filter:blur(20px) saturate(170%);
+    color:var(--brand-ink); font-family:inherit;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+    box-shadow:0 5px 16px rgba(249,115,22,.12), inset 0 1px 0 rgba(255,255,255,.92);
+  }
+  .mark-btn:active { transform:scale(.98); }
+
+  .marks { width:100%; display:flex; flex-direction:column; gap:8px; max-height:120px; overflow-y:auto; }
+  .mark-row {
+    display:flex; align-items:center; gap:9px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(20px) saturate(170%);
+    -webkit-backdrop-filter:blur(20px) saturate(170%);
+    border:1px solid var(--glass-edge);
+    border-radius:13px; padding:10px 12px;
+    font-size:11.5px; color:var(--ink-2);
+    box-shadow:0 3px 10px rgba(31,41,55,.04);
+  }
+  .mark-row .tm {
+    font-size:10px; color:var(--ink-4);
+    font-variant-numeric:tabular-nums; flex-shrink:0;
+  }
+
+  /* 输入条 */
+  .input-bar {
+    flex-shrink:0;
+    background:rgba(255,255,255,.5);
+    backdrop-filter:blur(30px) saturate(180%);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);
+    border-top:1px solid rgba(255,255,255,.7);
+    padding:11px 14px 14px;
+    display:flex; gap:9px; align-items:flex-end;
+  }
+  .input-bar textarea {
+    flex:1;
+    border:1px solid var(--glass-edge);
+    background:rgba(255,255,255,.8);
+    border-radius:15px;
+    padding:10px 13px;
+    font-family:inherit; font-size:13.5px;
+    outline:none; resize:none; max-height:76px; line-height:1.5;
+    color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.04);
+  }
+  .input-bar textarea::placeholder { color:var(--ink-4); }
+  .input-bar textarea:focus { border-color:rgba(249,115,22,.55); }
+  .input-bar .go {
+    width:38px; height:38px; border-radius:12px;
+    border:none; flex-shrink:0; cursor:pointer;
+    background:linear-gradient(160deg,#ffbe5c,var(--brand));
+    color:#fff; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 5px 14px rgba(249,115,22,.34), inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .input-bar .go:active { transform:scale(.95); }
+
+  /* 笔记卡 */
+  .note-block {
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:15px;
+    padding:13px 14px;
+    margin-bottom:8px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+
+  /* Toast */
+  .toast {
+    position:absolute; left:50%; transform:translateX(-50%) translateY(10px);
+    bottom:92px; z-index:200;
+    background:rgba(28,28,30,.86);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    color:#fff; font-size:12.5px; font-weight:500;
+    padding:10px 17px; border-radius:14px;
+    opacity:0; pointer-events:none;
+    transition:opacity .22s, transform .22s;
+    max-width:78%; text-align:center; line-height:1.5;
+    box-shadow:0 8px 24px rgba(0,0,0,.24);
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* 设计说明 */
+  .notes-sec { margin-bottom:22px; }
+  .notes-sec h4 {
+    font-size:12.5px; font-weight:700; margin-bottom:7px;
+    display:flex; align-items:center; gap:6px; letter-spacing:-.1px;
+  }
+  .notes-sec h4 span {
+    font-size:9.5px; font-weight:700; color:#fff;
+    background:linear-gradient(150deg,#ffbe5c,var(--brand));
+    border-radius:6px; padding:2px 6px; flex-shrink:0;
+  }
+  .notes-sec p { font-size:11.5px; color:var(--ink-2); line-height:1.75; }
+  .notes-sec .where {
+    margin-top:6px; font-size:11px; color:var(--brand);
+    background:rgba(255,247,237,.9);
+    border:1px solid var(--brand-line);
+    border-radius:9px; padding:7px 10px; line-height:1.58;
+  }
+
+  .home-indicator {
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:136px; height:5px; border-radius:3px;
+    background:rgba(28,28,30,.26);
+    z-index:150; pointer-events:none;
+  }
+
+  @media (max-width: 460px) {
+    body { padding:0; background:#fdfdff; }
+    .phone {
+      width:100%; height:100vh; height:100dvh;
+      border-radius:0; box-shadow:none;
+    }
+    .island { display:none; }
+    .statusbar { height:48px; padding:0 22px 8px; }
+  }
+</style>
+</head>
+<body data-role="student">
+<div class="phone">
+  <div class="island"></div>
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="right">
+      <div class="sb-bar" style="height:6px;"></div>
+      <div class="sb-bar" style="height:9px;"></div>
+      <div class="sb-bar" style="height:11px;"></div>
+      <span style="font-size:10px;margin-left:3px;font-weight:600;">100%</span>
+      <button class="notes-btn" onclick="openNotes()" title="设计说明">?</button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ==================== Tab 1：首页 ==================== -->
+    <div id="view-home" class="screen active">
+      <div class="scroll">
+        <div class="home-hero">
+          <div class="hero-claim" id="heroClaim">下午好</div>
+          <div class="hero-ident" id="heroIdent">正在连接老师的分身…</div>
+        </div>
+
+        <div class="notice" id="homeNotice" onclick="openFlow()" style="display:none;">
+          <div class="notice-dot"></div>
+          <div class="notice-body">
+            <div class="notice-title" id="noticeTitle"></div>
+            <div class="notice-sub" id="noticeSub"></div>
+          </div>
+          <div class="notice-go">去写 →</div>
+        </div>
+
+        <div class="notice" id="homeNoticeEmpty" style="display:none;background:rgba(255,255,255,.6);border-color:var(--glass-edge);">
+          <div class="notice-dot" style="background:#cbd5e1;box-shadow:none;"></div>
+          <div class="notice-body">
+            <div class="notice-title" style="color:var(--ink-2);">老师还没有布置作文</div>
+            <div class="notice-sub" style="color:var(--ink-4);">你可以先问老师点什么</div>
+          </div>
+        </div>
+
+        <div class="scene-label">或者，你现在想什么</div>
+        <div class="scenes">
+          <button class="scene" onclick="openFlow()">
+            <div class="scene-ic" style="background:linear-gradient(150deg,rgba(255,247,237,.98),rgba(255,237,213,.9));color:#c2410c;border:1px solid rgba(253,186,116,.55);">✍️</div>
+            <div class="scene-body">
+              <div class="scene-q">我作文不会写</div>
+              <div class="scene-a">老师带你把《和解》从头磨到尾，一步一步来</div>
+            </div>
+            <div class="scene-arrow">›</div>
+          </button>
+
+          <button class="scene" onclick="openListen()">
+            <div class="scene-ic" style="background:linear-gradient(150deg,rgba(239,246,255,.98),rgba(219,234,254,.9));color:#1d4ed8;border:1px solid rgba(191,219,254,.8);">🎧</div>
+            <div class="scene-body">
+              <div class="scene-q">老师刚讲的没听懂</div>
+              <div class="scene-a">边听边标「没懂」，下课自动变成你的笔记</div>
+            </div>
+            <div class="scene-arrow">›</div>
+          </button>
+
+          <button class="scene" onclick="goTab('persona','chat')">
+            <div class="scene-ic" style="background:linear-gradient(150deg,rgba(240,253,244,.98),rgba(209,250,229,.9));color:#047857;border:1px solid rgba(167,243,208,.9);">💬</div>
+            <div class="scene-body">
+              <div class="scene-q">想问问老师怎么看</div>
+              <div class="scene-a">用老师讲过的原话答你，没讲过会直说</div>
+            </div>
+            <div class="scene-arrow">›</div>
+          </button>
+        </div>
+
+        <div style="height:10px;"></div>
+      </div>
+
+      <div class="composer-wrap">
+        <div class="composer-hint">以上都不是？直接问也行</div>
+        <div class="composer">
+          <textarea id="homeInput" rows="1" placeholder="问点什么…"></textarea>
+          <div class="composer-row">
+            <button class="chip-btn" onclick="toast('插入「老师分身」· 移动端不做 @ 输入')">＋ 老师分身</button>
+            <button class="chip-btn" onclick="toast('插入技能：审题 / 立意 / 结构 / 描写')">技能</button>
+            <button class="send-btn" onclick="homeSend()">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== Tab 2：我的课 ==================== -->
+    <div id="view-courses" class="screen">
+      <div class="page-head">
+        <div style="flex:1;">
+          <h1>我的作文课</h1>
+          <div class="sub" id="coursesSub">正在加载…</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="pad" id="courseList" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="course off"><div class="course-d">正在加载课程…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== Tab 3：分身 ==================== -->
+    <div id="view-persona" class="screen">
+      <div class="page-head">
+        <div style="flex:1;">
+          <h1 id="personaTitle">老师的分身</h1>
+          <div class="sub" id="personaSub">正在连接…</div>
+        </div>
+      </div>
+
+      <div class="seg">
+        <button id="segChat" class="on" onclick="personaSeg('chat')">对话</button>
+        <button id="segMem" onclick="personaSeg('mem')">它对我的了解</button>
+      </div>
+
+      <div id="personaChat" class="scroll">
+        <div id="personaEmpty" class="empty">
+          <div class="empty-ic">💬</div>
+          <div class="empty-why">你还没问过老师。<br>聊两句，我就开始认识你了。</div>
+          <div class="empty-ex">
+            <button onclick="askQuick('老师怎么看「和解」这个题？')"><span>问：</span>老师怎么看「和解」这个题？</button>
+            <button onclick="askQuick('你知道我在准备什么考试吗？')"><span>问：</span>你知道我在准备什么考试吗？</button>
+            <button onclick="askQuick('老师对用 AI 写作文怎么看？')"><span>问：</span>老师对用 AI 写作文怎么看？</button>
+          </div>
+        </div>
+        <div id="personaStream" class="chat-stream" style="display:none;"></div>
+      </div>
+
+      <div id="personaMem" class="scroll" style="display:none;">
+        <div class="pad">
+          <div style="font-size:11.5px;color:var(--ink-3);line-height:1.65;">
+            这些都是我从你说过的话、交过的稿子里记下来的。不对就点「改一下」。
+          </div>
+          <div id="memGroups">
+            <div class="mem-group"><div class="mem-group-t">正在读取…</div></div>
+          </div>
+          <div id="memLearned"></div>
+
+          <div style="height:18px;"></div>
+        </div>
+      </div>
+
+      <div class="input-bar" id="personaInputBar">
+        <textarea id="personaInput" rows="1" placeholder="问老师点什么…"></textarea>
+        <button class="go" onclick="personaSend()">↑</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== 底部 Tab ==================== -->
+  <nav class="tabbar">
+    <button class="tab active" id="tab-home" onclick="goTab('home')">
+      <span class="ic">🏠</span><span>首页</span>
+    </button>
+    <button class="tab" id="tab-courses" onclick="goTab('courses')">
+      <span class="ic">📚</span><span>我的课</span>
+    </button>
+    <button class="tab" id="tab-persona" onclick="goTab('persona')">
+      <span class="ic">🧠</span><span>分身</span>
+    </button>
+  </nav>
+
+  <!-- ==================== 浮层 A：五环节 ==================== -->
+  <div id="flowOverlay" class="overlay">
+    <div class="flow-head">
+      <div class="flow-title-row">
+        <button class="back-btn" onclick="closeFlow()">‹</button>
+        <div style="flex:1;">
+          <div class="flow-title" id="flowTitle">《和解》</div>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-3);">A 老师</div>
+      </div>
+
+      <div class="flow-progress">
+        <div class="flow-progress-top">
+          <span>第 <b id="flowStepNo">1</b> / 5 环节 · <span id="flowStageName">交一稿</span></span>
+          <span id="flowStageHint">把完整一稿发我</span>
+        </div>
+        <div class="flow-bar"><i id="flowBar" style="width:20%"></i></div>
+      </div>
+    </div>
+
+    <div class="scroll" id="flowScroll">
+      <div class="chat-stream" id="flowStream"></div>
+    </div>
+
+    <div class="input-bar">
+      <textarea id="flowInput" rows="1" placeholder="把你的稿子贴进来，或说一句…"></textarea>
+      <button class="go" onclick="flowSend()">↑</button>
+    </div>
+  </div>
+
+  <!-- ==================== 浮层 B：帮我听 ==================== -->
+  <div id="listenOverlay" class="overlay">
+    <div class="page-head">
+      <button class="back-btn" onclick="closeListen()">‹</button>
+      <div style="flex:1;">
+        <h1>帮我听课</h1>
+        <div class="sub">A 老师 · 记叙文审题</div>
+      </div>
+      <div style="font-size:11.5px;color:var(--bad);font-weight:700;font-variant-numeric:tabular-nums;" id="listenTimer">00:00</div>
+    </div>
+
+    <div class="listen-body">
+      <div class="listen-label">正在听 · 随时标一个「没懂」</div>
+      <div class="mic">🎙️</div>
+      <div class="wave" id="wave"></div>
+
+      <div class="listen-transcript" id="transcript">
+        <p>「……所以审题的第一步不是找题眼，是确认这次『和解』落在哪一种情况里。」</p>
+        <p>「六种情况里，结局和开头是两条完全不同的路，写之前先确认你走哪条。」</p>
+      </div>
+
+      <button class="mark-btn" onclick="addMark()">＋ 这里没听懂</button>
+
+      <div class="marks" id="marks"></div>
+    </div>
+
+    <div class="input-bar" style="justify-content:center;">
+      <button class="go" style="width:100%;border-radius:14px;height:46px;font-size:13.5px;font-weight:700;" onclick="endListen()">结束听课，生成笔记</button>
+    </div>
+  </div>
+
+  <!-- ==================== 引用抽屉 ==================== -->
+  <div class="sheet-mask" id="refMask" onclick="closeRef()"></div>
+  <div class="sheet" id="refSheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h3>老师讲过的话</h3>
+      <button class="sheet-x" onclick="closeRef()">✕</button>
+    </div>
+    <div class="sheet-body" id="refBody"></div>
+  </div>
+
+  <!-- ==================== 课后笔记 ==================== -->
+  <div class="sheet-mask" id="noteMask" onclick="closeNote()"></div>
+  <div class="sheet" id="noteSheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h3>这节课的笔记</h3>
+      <button class="sheet-x" onclick="closeNote()">✕</button>
+    </div>
+    <div class="sheet-body" id="noteBody"></div>
+  </div>
+
+  <!-- ==================== 设计说明 ==================== -->
+  <div class="sheet-mask" id="notesMask" onclick="closeNotes()"></div>
+  <div class="sheet" id="notesSheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h3>学生端的 13 个设计决策</h3>
+      <button class="sheet-x" onclick="closeNotes()">✕</button>
+    </div>
+    <div class="sheet-body" id="notesBody"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="home-indicator"></div>
+</div>
+
+<script src="api.js"></script>
+<script>
+/* =========================================================
+   全局状态
+   ========================================================= */
+const S = {
+  tab: 'home',
+  scrollLock: false,
+  listenSec: 0,
+  listenTimer: null,
+  marks: [],
+  courseId: null,
+  courseTitle: '',
+  stage: 0,
+  stageName: '',
+  greeting: '',
+  finished: false,
+  citesByN: {},
+  home: null
+};
+
+function $(id) { return document.getElementById(id); }
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+
+/* =========================================================
+   Tab 切换
+   ========================================================= */
+function goTab(name, seg) {
+  S.tab = name;
+  ['home', 'courses', 'persona'].forEach(k => {
+    $('view-' + k).classList.toggle('active', k === name);
+    $('tab-' + k).classList.toggle('active', k === name);
+  });
+  if (name === 'persona' && seg) personaSeg(seg);
+}
+
+function personaSeg(which) {
+  const isChat = which === 'chat';
+  $('segChat').classList.toggle('on', isChat);
+  $('segMem').classList.toggle('on', !isChat);
+  $('personaChat').style.display = isChat ? 'block' : 'none';
+  $('personaMem').style.display = isChat ? 'none' : 'block';
+  $('personaInputBar').style.display = isChat ? 'flex' : 'none';
+}
+
+/* =========================================================
+   引用（数据来自后端返回的真实出处）
+   ========================================================= */
+function openRef() {
+  const list = Object.values(S.citesByN);
+  if (!list.length) { toast('这条回答没有引用老师原话'); return; }
+  $('refBody').innerHTML = list.map(r => `
+    <div class="ref-item">
+      <div class="ref-src">
+        <span class="badge" style="background:#c0392b">原</span>
+        <span>${r.source}</span>
+        <span style="margin-left:auto;color:#f97316;font-weight:700;">[${r.n}]</span>
+      </div>
+      <div class="ref-d" style="font-size:12.5px;color:var(--ink);">${r.text}</div>
+    </div>`).join('');
+  $('refMask').classList.add('open');
+  $('refSheet').classList.add('open');
+}
+function closeRef() {
+  $('refMask').classList.remove('open');
+  $('refSheet').classList.remove('open');
+}
+
+/* =========================================================
+   思考卡
+   ========================================================= */
+let thinkingSeq = 0;
+
+function runThinking(container, steps, onDone) {
+  const id = 'tk' + (++thinkingSeq);
+  const card = document.createElement('div');
+  card.className = 'think-card';
+  card.id = id;
+  card.innerHTML = `
+    <div class="think-head" onclick="toggleThink('${id}')">
+      <span style="font-size:12px;">🧠</span>
+      <span class="ttl">老师在想</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="think-body"></div>`;
+  container.appendChild(card);
+  const body = card.querySelector('.think-body');
+  followScroll(container);
+
+  let i = 0;
+  function next() {
+    if (i >= steps.length) {
+      card.classList.add('done', 'collapsed');
+      card.querySelector('.ttl').textContent = '想好了 · 点开看老师怎么想的';
+      followScroll(container);
+      if (onDone) onDone();
+      return;
+    }
+    const st = steps[i];
+
+    if (st.kind === 'judge') {
+      const row = document.createElement('div');
+      row.className = 't-step';
+      row.innerHTML = '<span class="spin"></span><span class="txt"></span>';
+      body.appendChild(row);
+      const txt = row.querySelector('.txt');
+      let c = 0;
+      (function tick() {
+        c += 3;
+        txt.textContent = st.text.slice(0, c);
+        followScroll(container);
+        if (c < st.text.length) setTimeout(tick, 34);
+        else {
+          txt.textContent = st.text;
+          const sp = row.querySelector('.spin');
+          if (sp) sp.remove();
+          setTimeout(() => { i++; next(); }, 220);
+        }
+      })();
+    } else {
+      const row = document.createElement('div');
+      row.className = 't-step tool';
+      row.innerHTML = `<span class="tic">${st.icon || '›'}</span><span>${st.label}</span><span class="meta">${st.meta || ''}</span>`;
+      body.appendChild(row);
+      followScroll(container);
+      setTimeout(() => { i++; next(); }, st.dur || 700);
+    }
+  }
+  next();
+}
+
+function toggleThink(id) {
+  const c = $(id);
+  if (c) c.classList.toggle('collapsed');
+}
+
+/* =========================================================
+   滚动
+   ========================================================= */
+function followScroll(container) {
+  const sc = container.closest('.scroll');
+  if (!sc || S.scrollLock) return;
+  requestAnimationFrame(() => { sc.scrollTop = sc.scrollHeight; });
+}
+
+function bindScrollLock(scroller) {
+  if (!scroller) return;
+  scroller.addEventListener('scroll', () => {
+    const gap = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+    S.scrollLock = gap > 48;
+  }, { passive: true });
+}
+
+/* =========================================================
+   渲染
+   ========================================================= */
+function addUser(container, text) {
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="msg-avatar">我</div><div class="bubble"></div>`;
+  el.querySelector('.bubble').textContent = text;
+  container.appendChild(el);
+  followScroll(container);
+}
+
+function addExpert(container, html, cites) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `<div class="msg-avatar">A</div><div class="bubble">${html}</div>`;
+  container.appendChild(el);
+  if (cites !== false) {
+    el.querySelectorAll('.cite').forEach(c => c.addEventListener('click', openRef));
+  }
+  followScroll(container);
+  return el;
+}
+
+function addMemHint(container, text) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(236,253,245,.98),rgba(209,250,229,.92));color:#047857;">✓</div>
+    <div style="max-width:88%;">
+      <div class="mem-hint" onclick="goTab('persona','mem')">
+        <span class="lbl">我记下了：</span>${text}
+        <span style="color:#f97316;font-weight:700;"> 点开看 ›</span>
+      </div>
+    </div>`;
+  container.appendChild(el);
+  followScroll(container);
+}
+
+/* =========================================================
+   首页输入
+   ========================================================= */
+function homeSend() {
+  const ta = $('homeInput');
+  const v = ta.value.trim();
+  if (!v) { toast('先写点什么'); return; }
+  ta.value = '';
+  goTab('persona', 'chat');
+  setTimeout(() => { askQuick(v, true); }, 120);
+}
+
+/* =========================================================
+   分身对话
+   ========================================================= */
+function showPersonaStream() {
+  $('personaEmpty').style.display = 'none';
+  $('personaStream').style.display = 'flex';
+}
+
+function askQuick(text, direct) {
+  showPersonaStream();
+  const stream = $('personaStream');
+  if (!direct) { stream.innerHTML = ''; S.citesByN = {}; }
+  addUser(stream, text);
+
+  const thinking = document.createElement('div');
+  thinking.className = 'think-card';
+  thinking.innerHTML = `
+    <div class="think-head"><span style="font-size:12px;">🧠</span>
+      <span class="ttl">老师在想</span><span class="spin" style="margin-left:auto;"></span></div>`;
+  stream.appendChild(thinking);
+  followScroll(stream);
+
+  API.chat(text).then(data => {
+    thinking.remove();
+
+    // 出处编号映射，供点开抽屉用
+    (data.cites || []).forEach(c => { S.citesByN[c.n] = c; });
+
+    runThinking(stream, data.steps || [], () => {
+      let html = escapeHtml(data.text || '');
+      html = html.replace(/\n/g, '<br>');
+      // 把 [1] 变成可点的出处角标
+      html = html.replace(/\[(\d+)\]/g, function (m, n) {
+        return S.citesByN[n] ? '<span class="cite">' + n + '</span>' : m;
+      });
+
+      addExpert(stream, html, true);
+
+      if (!data.grounded) {
+        setTimeout(() => addTransferCard(stream), 420);
+      } else {
+        setTimeout(() => addMemHint(stream, '你在问「' + text.slice(0, 12) + '」，我记下来了'), 500);
+      }
+    });
+  }).catch(err => {
+    thinking.remove();
+    addExpert(stream,
+      '<b>连不上后端。</b><br>请确认 <code>python backend/server.py</code> 已经启动。<br>'
+      + '<span style="color:var(--ink-4);font-size:11.5px;">' + escapeHtml(err.message) + '</span>',
+      false);
+  });
+}
+
+function addTransferCard(stream) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(254,242,242,.98),rgba(255,228,228,.92));color:#b91c1c;">?</div>
+    <div class="bubble-card" style="padding:13px;">
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">转给老师？</div>
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.65;margin-bottom:11px;">老师下次会看到这个问题，答了会通知你。</div>
+      <button class="chip-btn" style="height:32px;background:linear-gradient(160deg,#ffbe5c,#f97316);color:#fff;border-color:transparent;padding:0 15px;box-shadow:0 4px 12px rgba(249,115,22,.3);" onclick="toast('已经记进老师的清单了')">转给老师</button>
+    </div>`;
+  stream.appendChild(el);
+  followScroll(stream);
+}
+
+function personaSend() {
+  const ta = $('personaInput');
+  const v = ta.value.trim();
+  if (!v) { toast('先写点什么'); return; }
+  ta.value = '';
+  askQuick(v);
+}
+
+/* =========================================================
+   五环节（全部走真实接口）
+   ========================================================= */
+function openFlow() {
+  $('flowOverlay').classList.add('open');
+  bindScrollLock($('flowScroll'));
+  $('flowStream').innerHTML = '';
+  loadFlow();
+}
+
+function closeFlow() { $('flowOverlay').classList.remove('open'); }
+
+function loadFlow() {
+  const stream = $('flowStream');
+  stream.innerHTML = '<div class="msg"><div class="bubble">正在打开课程…</div></div>';
+
+  API.flow(S.courseId).then(data => {
+    S.stage = data.stage;
+    S.stageName = data.stageName;
+    S.courseTitle = data.course.title;
+    renderFlowHead(data);
+
+    stream.innerHTML = '';
+    (data.messages || []).forEach(m => {
+      if (m.role === 'user') { addUser(stream, m.content); return; }
+      (m.cites || []).forEach(c => { S.citesByN[c.n] = c; });
+      let html = escapeHtml(m.content).replace(/\n/g, '<br>')
+        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\[(\d+)\]/g, function (mm, n) {
+          return S.citesByN[n] ? '<span class="cite">' + n + '</span>' : mm;
+        });
+      runThinking(stream, m.steps || [], () => { addExpert(stream, html, true); });
+    });
+
+    if (!(data.messages || []).length) {
+      addExpert(stream, escapeHtml(data.greeting), false);
+    }
+
+    if (data.finished) {
+      appendFinishCard(stream);
+    } else if ((data.messages || []).length) {
+      addStageEntry(stream, data);
+    }
+  }).catch(err => {
+    stream.innerHTML = '';
+    addExpert(stream, '<b>课程加载失败。</b><br>' + escapeHtml(err.message), false);
+  });
+}
+
+function renderFlowHead(data) {
+  $('flowTitle').textContent = '《' + (data.course ? data.course.title : S.courseTitle) + '》';
+  $('flowStepNo').textContent = data.stage + 1;
+  $('flowStageName').textContent = data.stageName;
+  $('flowStageHint').textContent = data.stageHint || '';
+  $('flowBar').style.width = ((data.stage + 1) / (data.totalStages || 5) * 100) + '%';
+}
+
+function addStageEntry(stream, data) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(238,242,255,.98),rgba(224,231,255,.92));color:#4338ca;">→</div>
+    <div class="bubble" style="background:linear-gradient(150deg,rgba(238,242,255,.86),rgba(224,231,255,.76));border-color:rgba(199,210,254,.85);color:#3730a3;">
+      <b>第 ${data.stage + 1} 环节 · ${escapeHtml(data.stageName)}</b><br>${escapeHtml(data.greeting)}
+    </div>`;
+  stream.appendChild(el);
+  followScroll(stream);
+}
+
+function appendFinishCard(stream) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(236,253,245,.98),rgba(209,250,229,.92));color:#047857;">✓</div>
+    <div class="bubble-card" style="padding:15px;">
+      <div style="font-size:13.5px;font-weight:750;margin-bottom:7px;letter-spacing:-.2px;">五环节全部通过</div>
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.7;margin-bottom:12px;">《修改总结与进步对照报告》已生成，主稿保持第一版原样，随时可以对照回看。老师那边也会收到。</div>
+      <button class="chip-btn" style="height:32px;background:linear-gradient(160deg,#ffbe5c,#f97316);color:#fff;border-color:transparent;padding:0 15px;box-shadow:0 4px 12px rgba(249,115,22,.3);" onclick="toast('报告已生成，老师也收到了')">看结课报告</button>
+    </div>`;
+  stream.appendChild(el);
+  followScroll(stream);
+}
+
+function flowSend() {
+  const ta = $('flowInput');
+  const v = ta.value.trim();
+  if (!v) { toast('先写点什么'); return; }
+  if (S.finished) { toast('这篇已经结课了'); return; }
+  ta.value = '';
+  S.scrollLock = false;
+
+  const stream = $('flowStream');
+  addUser(stream, v);
+
+  const thinking = document.createElement('div');
+  thinking.className = 'think-card';
+  thinking.innerHTML = `
+    <div class="think-head"><span style="font-size:12px;">🧠</span>
+      <span class="ttl">老师在想</span><span class="spin" style="margin-left:auto;"></span></div>`;
+  stream.appendChild(thinking);
+  followScroll(stream);
+
+  API.flowSubmit(S.courseId, v).then(data => {
+    thinking.remove();
+    S.stage = data.stage;
+    S.finished = !!data.finished;
+    renderFlowHead(data);
+
+    const last = (data.messages || []).slice(-1)[0];
+    const cites = (last && last.cites) || [];
+    cites.forEach(c => { S.citesByN[c.n] = c; });
+
+    const steps = (last && last.steps) || [];
+
+    runThinking(stream, steps, () => {
+      let html = escapeHtml(last ? last.content : '').replace(/\n/g, '<br>')
+        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\[(\d+)\]/g, function (mm, n) {
+          return S.citesByN[n] ? '<span class="cite">' + n + '</span>' : mm;
+        });
+      addExpert(stream, html, true);
+
+      if (data.diagnosis) {
+        setTimeout(() => addMemHint(stream,
+          S.stageName + '：' + data.diagnosis.problem.slice(0, 26)), 480);
+      }
+
+      setTimeout(() => {
+        if (data.finished) appendFinishCard(stream);
+        else addStageEntry(stream, data);
+      }, 880);
+    });
+  }).catch(err => {
+    thinking.remove();
+    addExpert(stream, '<b>提交失败。</b><br>' + escapeHtml(err.message), false);
+  });
+}
+
+/* =========================================================
+   帮我听
+   ========================================================= */
+function openListen() {
+  $('listenOverlay').classList.add('open');
+  const w = $('wave');
+  if (!w.dataset.init) {
+    w.dataset.init = '1';
+    w.innerHTML = Array.from({ length: 14 }, (_, i) =>
+      `<i style="animation-delay:${(i * 0.075).toFixed(2)}s"></i>`).join('');
+  }
+  S.listenSec = 0;
+  S.marks = [];
+  $('marks').innerHTML = '';
+  updateTimer();
+  clearInterval(S.listenTimer);
+  S.listenTimer = setInterval(() => { S.listenSec++; updateTimer(); }, 1000);
+}
+
+function updateTimer() {
+  const m = String(Math.floor(S.listenSec / 60)).padStart(2, '0');
+  const s = String(S.listenSec % 60).padStart(2, '0');
+  $('listenTimer').textContent = m + ':' + s;
+}
+
+function closeListen() {
+  clearInterval(S.listenTimer);
+  $('listenOverlay').classList.remove('open');
+}
+
+const MARK_TEXTS = [
+  '「六种情况」具体是哪六种',
+  '结局和开头的区别没听明白',
+  '题眼和限定词怎么分'
+];
+
+function addMark() {
+  const i = S.marks.length;
+  if (i >= MARK_TEXTS.length) { toast('先记着，下课再问'); return; }
+
+  const text = MARK_TEXTS[i];
+  const sec = S.listenSec;
+  S.marks.push({ text: text, atSec: sec });
+
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+
+  const row = document.createElement('div');
+  row.className = 'mark-row';
+  row.innerHTML = `<span class="tm">${m}:${s}</span><span>${escapeHtml(text)}</span>`;
+  $('marks').appendChild(row);
+  toast('记下了，下课自动变成你的笔记');
+
+  API.listenMark(S.courseId, text, sec).catch(() => {});
+}
+
+function endListen() {
+  clearInterval(S.listenTimer);
+  $('listenOverlay').classList.remove('open');
+
+  const secs = S.listenSec;
+  $('noteBody').innerHTML = '<div style="font-size:12px;color:var(--ink-3);padding:12px 0;">正在整理笔记…</div>';
+  $('noteMask').classList.add('open');
+  $('noteSheet').classList.add('open');
+
+  API.listenFinish(S.courseId, secs).then(data => {
+    const marks = data.marks || [];
+    $('noteBody').innerHTML = `
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.7;margin-bottom:18px;">
+        这节课听了 <b>${data.seconds}</b> 秒，你标了 <b>${marks.length}</b> 个没懂的点。下面这些不需要你自己整理。
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.6px;margin-bottom:9px;">你没懂的地方</div>
+      ${marks.length ? marks.map(m => `
+        <div class="note-block" style="border-color:var(--brand-line);background:linear-gradient(150deg,rgba(255,247,237,.9),rgba(255,241,230,.78));">
+          <div class="mem-txt" style="color:var(--brand-ink);">${escapeHtml(m.text)}</div>
+        </div>`).join('')
+        : `<div style="font-size:11.5px;color:var(--ink-4);padding:6px 0;">这节课你都跟上了。</div>`}
+
+      ${(data.notes || []).map(n => `
+        <div class="note-block" style="margin-top:16px;border-color:var(--good-line);background:rgba(240,253,244,.85);">
+          <div style="font-size:12px;font-weight:700;color:#047857;margin-bottom:6px;">${escapeHtml(n.title)}</div>
+          <div style="font-size:11.5px;color:#065f46;line-height:1.65;margin-bottom:10px;">${escapeHtml(n.text || '')}</div>
+          <button class="chip-btn" style="height:32px;background:linear-gradient(160deg,#34d399,#0f9d63);color:#fff;border-color:transparent;padding:0 15px;box-shadow:0 4px 12px rgba(15,157,99,.28);" onclick="toast('打开：${escapeHtml(n.detail || '')}')">去看这段</button>
+        </div>`).join('')}
+
+      <div class="learned" style="margin-top:18px;">
+        <div class="learned-t">已记进「它对我的了解」</div>
+        <ul>${marks.length
+          ? marks.slice(0, 2).map(m => `<li>你在「${escapeHtml(m.text)}」这块还没懂</li>`).join('')
+          : '<li>这节课你跟上了</li>'}
+        </ul>
+      </div>`;
+  }).catch(err => {
+    $('noteBody').innerHTML =
+      '<div style="font-size:12px;color:var(--bad);padding:12px 0;">笔记生成失败：'
+      + escapeHtml(err.message) + '</div>';
+  });
+}
+
+function closeNote() {
+  $('noteMask').classList.remove('open');
+  $('noteSheet').classList.remove('open');
+}
+
+/* =========================================================
+   设计说明
+   ========================================================= */
+const NOTES = [
+  { n:'页面更少', t:'7 个界面压到 3 tab + 2 浮层',
+    d:'原来学生端有首页、课程列表、流程页、聊天、分身、通话、引用面板共 7 个界面。现在只有 3 个 tab，五环节和听课是两个「用完即退」的浮层，引用做成底部抽屉，不占页面。',
+    where:'底部只有 3 个 tab；流程页和听课都是覆盖层，返回就回到原处。' },
+  { n:'欢迎页', t:'不写功能名，写用户的话',
+    d:'原来四个入口叫「智慧课堂 / 帮我听课 / 老师AI分身 / 新建对话」——学生看完不知道点哪个。现在三张卡写的是「我作文不会写 / 老师刚讲的没听懂 / 想问问老师怎么看」，是用户的台词。输入框降级成底部的兜底入口。',
+    where:'首页中间那三张卡。' },
+  { n:'空状态', t:'首屏绝不空',
+    d:'通用助手的首页是空的，教育产品不是——学生进来时老师的东西已经在等了。所以首页第一条不是「暂无对话」，是「A 老师布置了《和解》」。空状态统一公式：为什么空 + 一个可直接点的示例 + 一个动作。',
+    where:'首页橙色横条；分身页「对话」里的三句示例问句。' },
+  { n:'思考过程', t:'专家腔，不是日志腔',
+    d:'原来写「我从知识库调取要点，再检索同题范文」——这是日志。现在写「审题的关键不是抓题眼，是先确认落在哪一种」——讲的是门道。学生看思考过程的价值不是监督你干活，是顺便学到方法。',
+    where:'任意环节发一句，看紫色卡片里的那段话。' },
+  { n:'思考滚动', t:'跟随时不抢手指',
+    d:'流式期间跟随滚动，但用户一手动上滑超过 48px 就立刻解锁，不再抢回去。完成后自动收起思考卡，只留一行；答案渲染在卡片外面，不会被折叠遮住。',
+    where:'思考时往上滑一下，反馈就不会再跳回底部。' },
+  { n:'工具 vs 对话', t:'需要回应的才是对话',
+    d:'「翻老师的讲义」「搜网页」是工具——折叠成一行，不占气泡、不占对话轮次、历史里收起。「诊断报告」「录课卡」是卡片。「老师说的话」才是气泡。口诀：用户要回应的，是对话；只需要知道的，是工具或卡片。',
+    where:'紫卡里的灰色一行行是工具；紫卡外的是气泡。' },
+  { n:'引用可追溯', t:'每句都能点回老师的原话',
+    d:'所有 AI 输出都必须能追溯到老师——引用角标、出处面板，或者一句「老师没讲过」。这是教育产品和通用助手的分水岭，也是家长信任的来源。',
+    where:'答案里的 [1][2][3] 角标，点开是从底部滑出的抽屉。' },
+  { n:'兜底不编造', t:'没讲过就直说，转给老师',
+    d:'分身页问「老师对用 AI 写作文怎么看」，它会翻完材料然后明说没讲过，给一个「转给 A 老师」的按钮。宁可承认不知道，也不要编一段像老师说的话。',
+    where:'分身页第三句示例问句。' },
+  { n:'记忆呈现', t:'可看、可改、带信心条',
+    d:'记忆不是算法层的分数，是用户能感知的东西。每条带信心条和「改一下」，信心低的用灰字、明说不写进画像。新旧冲突要显式消解：「替换了 8 月的主攻议论文」，否则用户会认为分身记混了。',
+    where:'分身页 →「它对我的了解」。' },
+  { n:'记忆时机', t:'攒批，不在对话中弹',
+    d:'记忆写入不在对话里实时弹窗，而是附一条薄提示（可点开），攒到会话结束或结课那一刻统一呈现一次「今天我学到的」。这是「认知更新」该有的节奏。',
+    where:'每条答案下面的虚线提示；记忆页最底部的绿卡。' },
+  { n:'业务联动', t:'每个动作都要有归处',
+    d:'「帮我听」里标的没懂点，必须变成课后笔记和建议录课，再变成两条记忆候选；结课报告必须同时到老师那边。否则四个模块就是四个孤岛，用户得自己搬信息。',
+    where:'听课页标一个「没懂」，结束听课，看笔记里的三层转化。' },
+  { n:'步长', t:'到第一次有价值对话 ≤ 2 次点击',
+    d:'首页横条直接进流程页，不再走「首页 → 课程列表 → 流程页」三跳；课程列表只在「我要看看我有哪些课」时才需要。「我的课」里的「继续打磨」也是一跳直达。',
+    where:'首页横条点一下就到五环节。' },
+  { n:'视觉统一', t:'与学生端同一套液态玻璃令牌',
+    d:'两端用完全相同的设计令牌：同一份扎染渐变（铺在机身层，让状态栏也透出来）、同一套玻璃层级（.66/.78/.9 三档白）、同一份圆角与阴影、同一个品牌橙。教师端发布页嵌的学生端预览，和这份原型看起来必须是同一个产品。',
+    where:'整体视觉。把两份原型并排看，渐变和玻璃质感应该完全一致。' }
+];
+
+function openNotes() {
+  $('notesBody').innerHTML = NOTES.map(x => `
+    <div class="notes-sec">
+      <h4><span>${x.n}</span>${x.t}</h4>
+      <p>${x.d}</p>
+      <div class="where">在原型里看：${x.where}</div>
+    </div>`).join('');
+  $('notesMask').classList.add('open');
+  $('notesSheet').classList.add('open');
+}
+function closeNotes() {
+  $('notesMask').classList.remove('open');
+  $('notesSheet').classList.remove('open');
+}
+
+/* =========================================================
+   工具
+   ========================================================= */
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* =========================================================
+   首页 / 课程 / 记忆 数据加载
+   ========================================================= */
+function loadHome() {
+  API.home().then(data => {
+    S.home = data;
+    const h = new Date().getHours();
+    const greet = h < 6 ? '夜深了' : h < 12 ? '上午好' : h < 18 ? '下午好' : '晚上好';
+    $('heroClaim').textContent = greet;
+    $('heroIdent').textContent = '这是' + data.teacher.name + '的分身，读过他 '
+      + data.teacher.materialCount + ' 份讲义';
+
+    if (data.notice) {
+      S.courseId = data.notice.courseId;
+      $('homeNotice').style.display = 'flex';
+      $('homeNoticeEmpty').style.display = 'none';
+      $('noticeTitle').textContent = data.notice.title;
+      $('noticeSub').textContent = data.notice.due
+        ? '截止' + data.notice.due + ' · 你还没交一稿' : '你还没交一稿';
+    } else {
+      $('homeNotice').style.display = 'none';
+      $('homeNoticeEmpty').style.display = 'flex';
+    }
+
+    // 课程页头部
+    $('coursesSub').textContent = data.teacher.name + ' · ' + data.student.className;
+    // 分身页头部
+    $('personaTitle').textContent = data.teacher.name + '的分身';
+    $('personaSub').textContent = '基于 ' + data.teacher.materialCount
+      + ' 份材料 · 引用老师原话作答';
+  }).catch(err => {
+    $('heroIdent').textContent = '连不上后端：' + err.message;
+    $('heroIdent').style.color = 'var(--bad)';
+  });
+}
+
+function loadCourses() {
+  API.courses().then(data => {
+    const box = $('courseList');
+    if (!data.courses.length) {
+      box.innerHTML = '<div class="course off"><div class="course-d">老师还没发布课程。</div></div>';
+      return;
+    }
+    box.innerHTML = data.courses.map(c => {
+      const live = c.status === 'published';
+      const closed = c.status === 'closed';
+      const cta = live ? '继续打磨 →' : closed ? '看报告' : '未开始';
+      const ctaColor = live ? 'var(--brand)' : 'var(--ink-3)';
+      const tag = live
+        ? '<span class="tag live">进行中</span>'
+        : closed ? '<span class="tag">已结课</span>' : '<span class="tag">未开始</span>';
+      const stage = live
+        ? `<span class="tag">第 ${c.stage + 1} / ${c.totalStages} 环节</span>` : '';
+
+      return `
+      <div class="course ${live ? '' : 'off'}"
+           onclick="${live ? `openCourse('${c.id}')` : `toast('这门课${closed ? '已结课' : '还没发布'}')`}">
+        <div class="course-top">
+          <div class="course-t">《${escapeHtml(c.title)}》</div>
+          <div class="course-cta" style="color:${ctaColor};">${cta}</div>
+        </div>
+        <div class="course-d">${escapeHtml(c.prompt || '')}</div>
+        <div class="tags">${tag}<span class="tag">${escapeHtml(c.genre)}</span>${stage}</div>
+      </div>`;
+    }).join('');
+  }).catch(err => {
+    $('courseList').innerHTML =
+      '<div class="course off"><div class="course-d">课程加载失败：'
+      + escapeHtml(err.message) + '</div></div>';
+  });
+}
+
+function openCourse(id) {
+  S.courseId = id;
+  openFlow();
+}
+
+function loadMemory() {
+  API.memory().then(data => {
+    const box = $('memGroups');
+    if (!data.groups.length) {
+      box.innerHTML = '<div class="mem-group"><div class="mem-group-t">我还不了解你</div>'
+        + '<div class="mem-item"><div class="mem-txt">和我聊两句，我开始认识你。</div></div></div>';
+      return;
+    }
+
+    box.innerHTML = data.groups.map(g => `
+      <div class="mem-group">
+        <div class="mem-group-t">${escapeHtml(g.type)}</div>
+        ${g.items.map(it => {
+          const low = it.confidence < 0.6;
+          const pct = Math.round(it.confidence * 100);
+          const conflict = it.replacedBy
+            ? `<div class="mem-conflict">↑ 替换了「${escapeHtml(it.replacedBy)}」。旧的那条还在，但不再拿来回答你。</div>`
+            : '';
+          return `
+          <div class="mem-item ${low ? 'low' : ''}">
+            <div class="mem-txt">${escapeHtml(it.content)}</div>
+            <div class="mem-meta">
+              <div class="conf"><i style="width:${pct}%"></i></div>
+              <span class="conf-n">${pct}%</span>
+              <button class="mem-fix" onclick="fixMemory('${it.id}', ${it.confidence})">改一下</button>
+            </div>
+            <div class="mem-src">${low ? '信心不高，只作参考，不会写进你的画像' : '来源：' + escapeHtml(it.source)}</div>
+            ${conflict}
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+
+    $('memLearned').innerHTML = data.learnedToday && data.learnedToday.length
+      ? `<div class="learned">
+           <div class="learned-t">今天我学到的</div>
+           <ul>${data.learnedToday.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>
+         </div>`
+      : '';
+  }).catch(err => {
+    $('memGroups').innerHTML =
+      '<div class="mem-group"><div class="mem-group-t">读取失败</div>'
+      + '<div class="mem-item"><div class="mem-txt">' + escapeHtml(err.message) + '</div></div></div>';
+  });
+}
+
+function fixMemory(id, oldConf) {
+  const v = window.prompt('改成什么？（直接编辑这句话，改完立刻生效）');
+  if (v === null) return;
+  const text = v.trim();
+  if (!text) { toast('内容不能为空'); return; }
+
+  API.memoryFix(id, text, Math.max(0.9, oldConf)).then(() => {
+    toast('已记下你的更正');
+    loadMemory();
+  }).catch(err => toast('保存失败：' + err.message));
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+(function init() {
+  ['homeInput', 'personaInput', 'flowInput'].forEach(id => {
+    const ta = $(id);
+    if (!ta) return;
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, id === 'homeInput' ? 80 : 76) + 'px';
+    });
+  });
+  personaSeg('chat');
+  bindScrollLock($('personaChat'));
+
+  // 并行拉三块真实数据
+  loadHome();
+  loadCourses();
+  loadMemory();
+})();
+</script>
+</body>
+</html>

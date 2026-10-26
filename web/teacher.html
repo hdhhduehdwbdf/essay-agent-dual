@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>作文分身 · 教师端</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root {
+    --brand:#f97316;
+    --brand-2:#fbbf24;
+    --brand-ink:#9a3412;
+    --brand-soft:rgba(255,241,230,.66);
+    --brand-line:rgba(253,186,116,.62);
+
+    --ink:#1c1c1e;
+    --ink-2:#48484a;
+    --ink-3:rgba(60,60,67,.56);
+    --ink-4:rgba(60,60,67,.34);
+
+    --hairline:rgba(60,60,67,.09);
+    --white:#fff;
+
+    --glass:rgba(255,255,255,.66);
+    --glass-2:rgba(255,255,255,.78);
+    --glass-3:rgba(255,255,255,.9);
+    --glass-edge:rgba(255,255,255,.92);
+    --glass-shadow:0 8px 30px rgba(31,41,55,.06), inset 0 1px 0 rgba(255,255,255,.98);
+    --glass-shadow-sm:0 4px 16px rgba(31,41,55,.045), inset 0 1px 0 rgba(255,255,255,.96);
+
+    --good:#0f9d63;
+    --good-soft:rgba(236,253,245,.72);
+    --good-line:rgba(167,243,208,.8);
+    --warn:#d97706;
+    --warn-soft:rgba(255,251,235,.72);
+    --warn-line:rgba(253,230,138,.85);
+    --bad:#dc2626;
+    --bad-soft:rgba(254,242,242,.75);
+    --bad-line:rgba(254,202,202,.8);
+  }
+
+  html, body { height:100%; }
+
+  body {
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+                "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 20% 10%, #e8eef8 0%, transparent 45%),
+      radial-gradient(circle at 85% 85%, #f0ecf8 0%, transparent 45%),
+      #e3e7ef;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    padding:24px;
+  }
+
+  /* =========================================================
+     iPhone 17 机身
+     ========================================================= */
+  .phone {
+    position:relative;
+    width:393px;
+    height:min(852px, calc(100vh - 48px));
+    border-radius:58px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    flex-shrink:0;
+    background:#fdfdff;
+    box-shadow:
+      0 0 0 1.5px rgba(255,255,255,.55),
+      0 0 0 12px #0c0d0f,
+      0 0 0 13.5px #3c4046,
+      0 44px 90px rgba(15,23,42,.32);
+  }
+
+  /* 灵动岛 */
+  .island {
+    position:absolute;
+    top:11px; left:50%; transform:translateX(-50%);
+    width:114px; height:33px;
+    border-radius:19px;
+    background:#07080a;
+    z-index:80;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .island::after {
+    content:'';
+    position:absolute; right:11px; top:11px;
+    width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #2c3a4a, #0a0d11 70%);
+    box-shadow:0 0 0 1px rgba(120,160,200,.22);
+  }
+
+  /* 状态栏 */
+  .statusbar {
+    height:54px; flex-shrink:0;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding:0 28px 9px;
+    font-size:15px; font-weight:600;
+    letter-spacing:.2px;
+    position:relative; z-index:60;
+  }
+  .statusbar .right { display:flex; align-items:center; gap:5px; }
+  .sb-bar { width:3px; border-radius:1px; background:var(--ink); }
+  .notes-btn {
+    width:21px; height:21px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.9);
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    color:var(--ink-3); font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; margin-left:7px;
+  }
+  .notes-btn:active { background:rgba(255,255,255,.9); }
+
+  /* =========================================================
+     扎染渐变底（铺在机身层，让状态栏和 Home 区也透出来）
+     ========================================================= */
+  .phone::before {
+    content:'';
+    position:absolute; inset:-25%;
+    z-index:0;
+    background:
+      radial-gradient(circle at 16% 10%,  rgba(255,214,180,.58), transparent 42%),
+      radial-gradient(circle at 84% 6%,   rgba(205,224,250,.56), transparent 46%),
+      radial-gradient(circle at 72% 44%,  rgba(255,238,204,.44), transparent 40%),
+      radial-gradient(circle at 14% 62%,  rgba(214,244,232,.48), transparent 42%),
+      radial-gradient(circle at 88% 82%,  rgba(232,216,250,.46), transparent 44%),
+      radial-gradient(circle at 44% 92%,  rgba(255,224,210,.40), transparent 42%),
+      radial-gradient(circle at 50% 38%,  rgba(255,255,255,1), transparent 66%);
+    filter:blur(46px) saturate(112%);
+    animation:dye 36s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes dye {
+    0%   { transform:translate3d(0,0,0) scale(1); }
+    100% { transform:translate3d(2%,-1.5%,0) scale(1.05); }
+  }
+
+  /* 玻璃上的极细噪声 */
+  .phone::after {
+    content:'';
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    opacity:.12;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+
+  /* =========================================================
+     应用区
+     ========================================================= */
+  .app {
+    flex:1; position:relative; overflow:hidden;
+    z-index:2;
+  }
+
+  .screen {
+    position:absolute; inset:0; z-index:1;
+    display:none; flex-direction:column;
+    overflow:hidden;
+  }
+  .screen.active { display:flex; }
+
+  .scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .scroll::-webkit-scrollbar { width:0; }
+
+  /* =========================================================
+     顶栏（玻璃）
+     ========================================================= */
+  .page-head {
+    flex-shrink:0;
+    padding:12px 20px 13px;
+    display:flex; align-items:center; gap:11px;
+    background:rgba(255,255,255,.42);
+    backdrop-filter:blur(28px) saturate(180%);
+    -webkit-backdrop-filter:blur(28px) saturate(180%);
+    border-bottom:1px solid rgba(255,255,255,.6);
+    box-shadow:0 1px 0 rgba(60,60,67,.04);
+  }
+  .page-head h1 { font-size:17px; font-weight:700; letter-spacing:-.35px; }
+  .page-head .sub { font-size:11.5px; color:var(--ink-3); margin-top:2px; line-height:1.45; }
+
+  .back-btn {
+    width:34px; height:34px; border-radius:12px;
+    border:1px solid var(--glass-edge);
+    background:var(--glass-2);
+    backdrop-filter:blur(16px) saturate(160%);
+    -webkit-backdrop-filter:blur(16px) saturate(160%);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--ink-2); font-size:16px; cursor:pointer; flex-shrink:0;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .back-btn:active { background:var(--glass-3); transform:scale(.96); }
+
+  .pad { padding:16px 20px; }
+
+  /* =========================================================
+     步骤条（玻璃）
+     ========================================================= */
+  .steps {
+    flex-shrink:0;
+    padding:12px 20px 14px;
+    background:rgba(255,255,255,.34);
+    backdrop-filter:blur(24px) saturate(170%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%);
+    border-bottom:1px solid rgba(255,255,255,.55);
+  }
+  .steps-top {
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; color:var(--ink-3); margin-bottom:8px;
+  }
+  .steps-top b { color:var(--brand); font-weight:700; }
+  .steps-bar {
+    height:5px; border-radius:3px;
+    background:rgba(120,120,128,.14);
+    overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.06);
+  }
+  .steps-bar > i {
+    display:block; height:100%; border-radius:3px;
+    background:linear-gradient(90deg, #ffc266, var(--brand));
+    box-shadow:0 0 8px rgba(249,115,22,.45);
+    transition:width .5s cubic-bezier(.3,.9,.3,1);
+  }
+  .steps-label {
+    display:flex; justify-content:space-between;
+    margin-top:8px; font-size:10px; color:var(--ink-4);
+  }
+  .steps-label span.on { color:var(--brand); font-weight:700; }
+
+  /* =========================================================
+     通用玻璃卡
+     ========================================================= */
+  .card {
+    background:var(--glass);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:22px;
+    padding:16px;
+    box-shadow:var(--glass-shadow);
+  }
+
+  .sec-title {
+    font-size:13px; font-weight:700; letter-spacing:-.2px;
+    margin-bottom:4px; display:flex; align-items:center; gap:6px;
+  }
+  .sec-hint { font-size:11.5px; color:var(--ink-3); line-height:1.65; margin-bottom:12px; }
+
+  /* =========================================================
+     按钮
+     ========================================================= */
+  .btn-primary {
+    width:100%; height:50px; border-radius:16px; border:none;
+    background:linear-gradient(160deg, #ffbe5c 0%, #f97316 62%, #ea6a0e 100%);
+    color:#fff; font-family:inherit; font-size:15px; font-weight:650;
+    letter-spacing:-.1px;
+    cursor:pointer;
+    box-shadow:
+      0 8px 22px rgba(249,115,22,.34),
+      inset 0 1px 0 rgba(255,255,255,.5),
+      inset 0 -1px 0 rgba(180,60,0,.18);
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    transition:transform .12s, box-shadow .18s;
+  }
+  .btn-primary:active {
+    transform:scale(.978);
+    box-shadow:0 4px 12px rgba(249,115,22,.3), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .btn-primary:disabled {
+    background:rgba(120,120,128,.16); color:var(--ink-4);
+    box-shadow:none; cursor:default;
+  }
+
+  .btn-ghost {
+    width:100%; height:46px; border-radius:15px;
+    border:1px solid var(--glass-edge);
+    background:var(--glass);
+    backdrop-filter:blur(20px) saturate(170%);
+    -webkit-backdrop-filter:blur(20px) saturate(170%);
+    color:var(--ink-2); font-family:inherit;
+    font-size:13.5px; font-weight:600;
+    cursor:pointer;
+    box-shadow:var(--glass-shadow-sm);
+    transition:transform .12s;
+  }
+  .btn-ghost:active { background:var(--glass-3); transform:scale(.98); }
+
+  /* =========================================================
+     S0 欢迎
+     ========================================================= */
+  .welcome {
+    flex:1; display:flex; flex-direction:column;
+    padding:26px 24px 22px;
+    overflow-y:auto;
+  }
+  .brand-mark {
+    width:58px; height:58px; border-radius:19px;
+    background:linear-gradient(150deg, rgba(255,241,230,.95), rgba(255,224,194,.9));
+    border:1px solid rgba(255,255,255,.9);
+    display:flex; align-items:center; justify-content:center;
+    font-size:27px; margin-bottom:20px;
+    box-shadow:0 8px 22px rgba(249,115,22,.16), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .welcome h2 {
+    font-size:26px; font-weight:750;
+    letter-spacing:-.9px; line-height:1.26;
+    margin-bottom:11px;
+  }
+  .welcome .lede {
+    font-size:13px; color:var(--ink-2); line-height:1.78;
+    margin-bottom:22px;
+  }
+  .promise-list { display:flex; flex-direction:column; gap:13px; margin-bottom:22px; }
+  .promise { display:flex; gap:11px; align-items:flex-start; }
+  .promise-ic {
+    width:24px; height:24px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800;
+    background:rgba(236,253,245,.85); color:var(--good);
+    border:1px solid var(--good-line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .promise-t { font-size:12.5px; font-weight:650; line-height:1.5; letter-spacing:-.1px; }
+  .promise-d { font-size:11.5px; color:var(--ink-3); line-height:1.62; margin-top:2px; }
+
+  .honest {
+    margin-top:auto;
+    background:rgba(255,255,255,.46);
+    backdrop-filter:blur(24px) saturate(170%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%);
+    border:1px solid var(--glass-edge);
+    border-radius:16px; padding:13px 14px;
+    font-size:11.5px; color:var(--ink-3); line-height:1.72;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .honest b { color:var(--ink-2); font-weight:650; }
+
+  /* =========================================================
+     S1 来源
+     ========================================================= */
+  .source {
+    background:var(--glass);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1.5px solid var(--glass-edge);
+    border-radius:19px;
+    padding:15px;
+    display:flex; gap:12px; align-items:flex-start;
+    cursor:pointer; margin-bottom:11px;
+    box-shadow:var(--glass-shadow-sm);
+    transition:border-color .18s, background .18s, transform .12s;
+  }
+  .source:active { transform:scale(.986); }
+  .source.on {
+    border-color:rgba(249,115,22,.75);
+    background:linear-gradient(150deg, rgba(255,247,237,.92), rgba(255,241,230,.78));
+    box-shadow:0 6px 20px rgba(249,115,22,.13), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .source-check {
+    width:22px; height:22px; border-radius:7px; flex-shrink:0;
+    border:1.5px solid rgba(120,120,128,.28);
+    background:rgba(255,255,255,.8);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:transparent; margin-top:1px;
+    transition:.18s;
+  }
+  .source.on .source-check {
+    background:linear-gradient(150deg,#ffbe5c,var(--brand));
+    border-color:transparent; color:#fff;
+    box-shadow:0 2px 7px rgba(249,115,22,.4), inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .source-body { flex:1; min-width:0; }
+  .source-t {
+    font-size:13.5px; font-weight:650; letter-spacing:-.2px;
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  }
+  .source-t .badge {
+    font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:6px;
+    background:rgba(236,253,245,.9); color:var(--good);
+    border:1px solid var(--good-line);
+  }
+  .source-t .badge.warn {
+    background:rgba(255,251,235,.9); color:var(--warn);
+    border-color:var(--warn-line);
+  }
+  .source-d { font-size:11.5px; color:var(--ink-3); line-height:1.62; margin-top:4px; }
+
+  .count-box {
+    margin-top:8px;
+    background:rgba(255,255,255,.5);
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1.5px dashed rgba(249,115,22,.42);
+    border-radius:17px;
+    padding:13px 15px;
+    display:flex; align-items:center; gap:11px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .count-box .n {
+    font-size:23px; font-weight:800; color:var(--brand);
+    font-variant-numeric:tabular-nums; line-height:1;
+    letter-spacing:-.8px;
+  }
+  .count-box .txt { font-size:11.5px; color:var(--ink-2); line-height:1.58; }
+
+  /* =========================================================
+     S2 解析
+     ========================================================= */
+  .parsing {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:0 28px; gap:20px;
+  }
+  .parse-ring {
+    width:80px; height:80px; border-radius:50%;
+    border:3px solid rgba(120,120,128,.13);
+    border-top-color:var(--brand);
+    animation:spin 1s linear infinite;
+    box-shadow:0 0 24px rgba(249,115,22,.16);
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .parse-title { font-size:16px; font-weight:700; letter-spacing:-.3px; }
+  .parse-steps {
+    width:100%; display:flex; flex-direction:column; gap:10px; margin-top:4px;
+  }
+  .parse-step {
+    display:flex; align-items:center; gap:10px;
+    font-size:12px; color:var(--ink-4);
+    transition:color .2s;
+  }
+  .parse-step.doing { color:var(--ink); font-weight:600; }
+  .parse-step.done { color:var(--ink-2); }
+  .parse-step .dot {
+    width:18px; height:18px; border-radius:50%; flex-shrink:0;
+    border:1.5px solid rgba(120,120,128,.22);
+    background:rgba(255,255,255,.75);
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; color:#fff;
+  }
+  .parse-step.doing .dot {
+    border-color:var(--brand); border-top-color:transparent;
+    animation:spin .9s linear infinite;
+  }
+  .parse-step.done .dot {
+    background:linear-gradient(150deg,#34d399,var(--good));
+    border-color:transparent;
+    box-shadow:0 2px 7px rgba(16,185,129,.35);
+  }
+
+  /* =========================================================
+     S3 初稿画像
+     ========================================================= */
+  .draft-head {
+    background:linear-gradient(150deg, rgba(255,247,237,.92), rgba(255,251,235,.78));
+    border:1px solid var(--brand-line);
+    border-radius:18px;
+    padding:14px 15px;
+    margin-bottom:15px;
+    box-shadow:0 6px 20px rgba(249,115,22,.09), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .draft-head .t { font-size:13px; font-weight:700; color:var(--brand-ink); margin-bottom:3px; letter-spacing:-.2px; }
+  .draft-head .d { font-size:11.5px; color:#b45309; line-height:1.6; opacity:.9; }
+
+  .trait {
+    background:var(--glass);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:20px;
+    padding:15px;
+    margin-bottom:12px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .trait-top { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .trait-ic {
+    width:26px; height:26px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .trait-name {
+    font-size:11px; font-weight:700; color:var(--ink-3);
+    letter-spacing:.5px; flex:1;
+  }
+  .trait-fix {
+    border:none; background:transparent;
+    font-family:inherit; font-size:11px; font-weight:650;
+    color:var(--brand); cursor:pointer; padding:3px 0; flex-shrink:0;
+  }
+  .trait-body { font-size:13px; line-height:1.76; color:var(--ink); letter-spacing:-.1px; }
+  .trait-body b { font-weight:700; }
+  .trait-body .hl { color:#c2410c; font-weight:650; }
+  .trait-src {
+    margin-top:10px; padding-top:10px;
+    border-top:1px solid var(--hairline);
+  }
+  .trait-src .q {
+    font-size:11px; color:var(--ink-3); line-height:1.65; font-style:italic;
+  }
+  .trait-src .q b { font-style:normal; color:var(--ink-2); font-weight:650; }
+  .conf-row { display:flex; align-items:center; gap:8px; margin-top:9px; }
+  .conf {
+    flex:1; height:4px; border-radius:2px;
+    background:rgba(120,120,128,.15);
+    overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.05);
+  }
+  .conf > i {
+    display:block; height:100%; border-radius:2px;
+    background:linear-gradient(90deg,#34d399,var(--good));
+  }
+  .conf.low > i { background:linear-gradient(90deg,#cbd5e1,#94a3b8); }
+  .conf-n {
+    font-size:10.5px; font-weight:650; color:var(--ink-4);
+    flex-shrink:0; font-variant-numeric:tabular-nums;
+  }
+
+  .limit {
+    background:rgba(255,255,255,.44);
+    backdrop-filter:blur(24px) saturate(170%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px;
+    padding:14px 15px;
+    margin-bottom:15px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .limit-t {
+    font-size:12px; font-weight:700; color:var(--ink-2);
+    margin-bottom:9px; display:flex; align-items:center; gap:6px;
+  }
+  .limit ul { list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .limit li {
+    font-size:11.5px; color:var(--ink-3); line-height:1.62;
+    padding-left:15px; position:relative;
+  }
+  .limit li::before {
+    content:'—'; position:absolute; left:0;
+    color:var(--ink-4); font-size:10px;
+  }
+
+  /* =========================================================
+     S4 试聊
+     ========================================================= */
+  .testbanner {
+    margin:13px 16px 0;
+    background:rgba(239,246,255,.72);
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid rgba(191,219,254,.85);
+    border-radius:15px; padding:12px 14px;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .testbanner .ic { font-size:15px; }
+  .testbanner .txt { font-size:11.5px; color:#1e40af; line-height:1.58; flex:1; }
+
+  .chat-stream {
+    padding:14px 16px 22px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .msg { display:flex; gap:9px; animation:fadeUp .24s ease-out; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+
+  .msg-avatar {
+    width:27px; height:27px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    background:linear-gradient(150deg, rgba(255,241,230,.98), rgba(255,224,194,.92));
+    color:#c2410c;
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 3px 9px rgba(249,115,22,.15);
+  }
+  .msg.user { flex-direction:row-reverse; }
+  .msg.user .msg-avatar {
+    background:linear-gradient(150deg, rgba(238,242,255,.98), rgba(224,231,255,.92));
+    color:#4338ca; border-color:rgba(255,255,255,.9);
+    box-shadow:0 3px 9px rgba(99,102,241,.14);
+  }
+  .bubble {
+    max-width:80%;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px; border-bottom-left-radius:7px;
+    padding:11px 13px;
+    font-size:13px; line-height:1.76;
+    word-break:break-word;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .msg.user .bubble {
+    background:linear-gradient(150deg, rgba(255,240,228,.9), rgba(255,232,214,.82));
+    border-color:rgba(253,186,116,.6);
+    color:#7c2d12;
+    border-radius:18px; border-bottom-right-radius:7px;
+    box-shadow:0 4px 16px rgba(249,115,22,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .bubble b { font-weight:700; }
+  .bubble .hl { color:#c2410c; font-weight:650; }
+  .cite {
+    display:inline-block; font-size:9px; font-weight:700;
+    color:var(--brand); background:rgba(255,247,237,.95);
+    border:1px solid var(--brand-line); border-radius:6px;
+    padding:0 4px; margin:0 1px; cursor:pointer;
+    vertical-align:1px; line-height:1.55;
+  }
+
+  .think-card {
+    max-width:94%;
+    border:1px solid rgba(232,228,242,.9);
+    background:rgba(251,250,255,.72);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-radius:17px; overflow:hidden;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .think-head {
+    display:flex; align-items:center; gap:7px;
+    padding:11px 13px; cursor:pointer;
+    font-size:11.5px; font-weight:600; color:#6d5f8f;
+  }
+  .think-head .chev { margin-left:auto; font-size:10px; color:#a99cc4; transition:transform .18s; }
+  .think-card.collapsed .think-head .chev { transform:rotate(-90deg); }
+  .think-body {
+    padding:10px 13px 13px;
+    display:flex; flex-direction:column; gap:8px;
+    border-top:1px solid rgba(240,236,249,.9);
+  }
+  .think-card.collapsed .think-body { display:none; }
+  .think-card.done { background:rgba(250,250,251,.66); border-color:var(--glass-edge); }
+  .think-card.done .think-head { color:var(--ink-3); }
+  .t-step { display:flex; gap:7px; font-size:11px; line-height:1.64; color:#5b5470; }
+  .t-step.tool {
+    color:var(--ink-3); align-items:center; padding:6px 9px;
+    background:rgba(255,255,255,.7);
+    border:1px solid var(--glass-edge);
+    border-radius:10px; font-size:10.5px;
+  }
+  .t-step.tool .meta { margin-left:auto; font-size:9.5px; color:var(--ink-4); }
+  .spin {
+    width:10px; height:10px; flex-shrink:0;
+    border:1.5px solid rgba(160,150,190,.35);
+    border-top-color:#8b7bb8;
+    border-radius:50%; animation:spin .8s linear infinite; margin-top:2px;
+  }
+
+  .input-bar {
+    flex-shrink:0;
+    background:rgba(255,255,255,.5);
+    backdrop-filter:blur(30px) saturate(180%);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);
+    border-top:1px solid rgba(255,255,255,.7);
+    padding:11px 14px 14px;
+    display:flex; gap:9px; align-items:flex-end;
+  }
+  .input-bar textarea {
+    flex:1;
+    border:1px solid var(--glass-edge);
+    background:rgba(255,255,255,.8);
+    border-radius:15px;
+    padding:10px 13px;
+    font-family:inherit; font-size:13.5px;
+    outline:none; resize:none; max-height:76px; line-height:1.5;
+    color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.04);
+  }
+  .input-bar textarea::placeholder { color:var(--ink-4); }
+  .input-bar textarea:focus { border-color:rgba(249,115,22,.55); }
+  .input-bar .go {
+    width:38px; height:38px; border-radius:12px; border:none;
+    flex-shrink:0; cursor:pointer;
+    background:linear-gradient(160deg,#ffbe5c,var(--brand));
+    color:#fff; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 5px 14px rgba(249,115,22,.34), inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .input-bar .go:active { transform:scale(.95); }
+
+  /* =========================================================
+     S5 发布
+     ========================================================= */
+  .classcode {
+    background:linear-gradient(150deg, rgba(255,247,237,.94), rgba(255,251,235,.8));
+    border:1.5px solid var(--brand-line);
+    border-radius:24px;
+    padding:24px 18px;
+    text-align:center;
+    margin-bottom:18px;
+    box-shadow:0 10px 30px rgba(249,115,22,.12), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .classcode .lbl { font-size:11.5px; color:#c2410c; font-weight:600; margin-bottom:9px; }
+  .classcode .code {
+    font-size:35px; font-weight:800; letter-spacing:6px;
+    color:var(--brand-ink);
+    font-variant-numeric:tabular-nums;
+    margin-bottom:7px;
+    text-shadow:0 1px 0 rgba(255,255,255,.9);
+  }
+  .classcode .note { font-size:11px; color:#c2410c; opacity:.82; line-height:1.55; }
+
+  .next-list { display:flex; flex-direction:column; gap:11px; margin-bottom:18px; }
+  .next-item {
+    display:flex; gap:11px; align-items:flex-start;
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px; padding:14px 15px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .next-n {
+    width:22px; height:22px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(150deg,rgba(255,247,237,.98),rgba(255,237,213,.92));
+    color:var(--brand); border:1px solid var(--brand-line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:800;
+  }
+  .next-t { font-size:12.5px; font-weight:650; line-height:1.5; letter-spacing:-.1px; }
+  .next-d { font-size:11.5px; color:var(--ink-3); line-height:1.62; margin-top:3px; }
+
+  .preview-shell {
+    background:rgba(255,255,255,.34);
+    backdrop-filter:blur(24px) saturate(170%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%);
+    border:1px solid var(--glass-edge);
+    border-radius:22px;
+    padding:13px;
+    margin-bottom:18px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .preview-label {
+    font-size:10px; font-weight:700; color:var(--ink-3);
+    letter-spacing:.5px; margin-bottom:9px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .preview-phone {
+    background:rgba(255,255,255,.78);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-radius:16px;
+    border:1px solid var(--glass-edge);
+    overflow:hidden;
+    box-shadow:0 4px 14px rgba(31,41,55,.06);
+  }
+  .pv-head {
+    padding:10px 12px;
+    border-bottom:1px solid var(--hairline);
+    background:rgba(255,255,255,.6);
+  }
+  .pv-head .n { font-size:11.5px; font-weight:700; letter-spacing:-.2px; }
+  .pv-head .s { font-size:9px; color:var(--ink-4); margin-top:2px; }
+  .pv-body {
+    padding:11px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,220,190,.5), transparent 55%),
+      radial-gradient(circle at 85% 80%, rgba(210,225,255,.5), transparent 55%),
+      rgba(247,248,250,.7);
+  }
+  .pv-notice {
+    background:linear-gradient(150deg, rgba(255,247,237,.95), rgba(255,241,230,.85));
+    border:1px solid var(--brand-line);
+    border-radius:11px; padding:9px 10px; margin-bottom:7px;
+  }
+  .pv-notice .t { font-size:10px; font-weight:650; color:var(--brand-ink); }
+  .pv-notice .s { font-size:8.5px; color:#c2410c; opacity:.82; margin-top:1px; }
+  .pv-scene {
+    background:rgba(255,255,255,.85);
+    border:1px solid var(--glass-edge);
+    border-radius:11px; padding:9px 10px; margin-bottom:6px;
+    box-shadow:0 2px 6px rgba(31,41,55,.04);
+  }
+  .pv-scene .q { font-size:10px; font-weight:650; letter-spacing:-.1px; }
+  .pv-scene .a { font-size:8.5px; color:var(--ink-4); margin-top:2px; line-height:1.4; }
+
+  /* =========================================================
+     S6 控制台
+     ========================================================= */
+  .kpi-row { display:flex; gap:10px; margin-bottom:15px; }
+  .kpi {
+    flex:1;
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:18px; padding:14px 12px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .kpi .n {
+    font-size:24px; font-weight:800; letter-spacing:-1px;
+    font-variant-numeric:tabular-nums; line-height:1;
+  }
+  .kpi .l { font-size:10px; color:var(--ink-3); margin-top:6px; line-height:1.45; }
+
+  .tier {
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:19px; padding:15px; margin-bottom:12px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .tier-top { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .tier-tag {
+    font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:6px;
+    letter-spacing:.4px;
+  }
+  .tier-tag.l1 {
+    background:rgba(236,253,245,.92); color:var(--good);
+    border:1px solid var(--good-line);
+  }
+  .tier-tag.l2 {
+    background:rgba(238,242,255,.92); color:#4338ca;
+    border:1px solid rgba(199,210,254,.9);
+  }
+  .tier-name { font-size:12.5px; font-weight:700; flex:1; letter-spacing:-.1px; }
+  .tier-st { font-size:10.5px; font-weight:650; }
+  .tier-d { font-size:11.5px; color:var(--ink-3); line-height:1.7; }
+  .tier-track {
+    height:6px; border-radius:3px;
+    background:rgba(120,120,128,.15);
+    overflow:hidden; margin-top:11px;
+    box-shadow:inset 0 1px 2px rgba(60,60,67,.06);
+  }
+  .tier-track > i {
+    display:block; height:100%; border-radius:3px;
+    background:linear-gradient(90deg,#ffc266,var(--brand));
+    box-shadow:0 0 8px rgba(249,115,22,.4);
+  }
+  .tier-note { font-size:10.5px; color:var(--ink-4); margin-top:7px; line-height:1.55; }
+
+  .alert {
+    background:linear-gradient(150deg, rgba(255,251,235,.9), rgba(255,247,237,.82));
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid var(--warn-line);
+    border-radius:20px; padding:15px; margin-bottom:15px;
+    box-shadow:0 8px 24px rgba(217,119,6,.1), inset 0 1px 0 rgba(255,255,255,.92);
+  }
+  .alert-t {
+    font-size:12.5px; font-weight:700; color:#92400e;
+    margin-bottom:7px; display:flex; align-items:center; gap:6px;
+    letter-spacing:-.1px;
+  }
+  .alert-d { font-size:11.5px; color:#a16207; line-height:1.68; }
+  .alert-q {
+    font-size:11.5px; color:#92400e;
+    background:rgba(255,255,255,.78);
+    border:1px solid rgba(253,230,138,.7);
+    border-radius:11px; padding:8px 10px; line-height:1.55;
+    margin-bottom:6px;
+  }
+  .alert-q .who { color:var(--ink-4); }
+  .alert-btn {
+    margin-top:11px; height:36px; padding:0 15px; border-radius:11px;
+    border:none; background:linear-gradient(160deg,#fbbf24,#d97706); color:#fff;
+    font-family:inherit; font-size:12px; font-weight:650; cursor:pointer;
+    box-shadow:0 5px 14px rgba(217,119,6,.3), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .alert-btn:active { transform:scale(.97); }
+
+  .stuck-row {
+    display:flex; align-items:center; gap:10px;
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--glass-edge);
+    border-radius:16px; padding:12px 13px; margin-bottom:9px;
+    box-shadow:var(--glass-shadow-sm);
+  }
+  .stuck-av {
+    width:31px; height:31px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(150deg, rgba(254,242,242,.98), rgba(255,228,228,.9));
+    color:#b91c1c; border:1px solid rgba(255,255,255,.9);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    box-shadow:0 3px 9px rgba(220,38,38,.13);
+  }
+  .stuck-body { flex:1; min-width:0; }
+  .stuck-n { font-size:12px; font-weight:650; letter-spacing:-.1px; }
+  .stuck-d { font-size:10.5px; color:var(--ink-4); margin-top:2px; line-height:1.48; }
+  .stuck-go {
+    font-size:11px; font-weight:650; color:var(--brand);
+    flex-shrink:0; cursor:pointer;
+  }
+
+  /* =========================================================
+     Bottom Sheet（重玻璃）
+     ========================================================= */
+  .sheet-mask {
+    position:absolute; inset:0;
+    background:rgba(20,26,36,.3);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+    display:none; z-index:90;
+    animation:fadeIn .2s;
+  }
+  .sheet-mask.open { display:block; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .sheet {
+    position:absolute; left:0; right:0; bottom:0;
+    max-height:80%;
+    background:rgba(252,253,255,.82);
+    backdrop-filter:blur(44px) saturate(190%);
+    -webkit-backdrop-filter:blur(44px) saturate(190%);
+    border-radius:30px 30px 0 0;
+    border-top:1px solid rgba(255,255,255,.9);
+    box-shadow:0 -12px 44px rgba(15,23,42,.16);
+    display:none; flex-direction:column; z-index:91;
+    animation:sheetUp .3s cubic-bezier(.3,.9,.3,1);
+  }
+  .sheet.open { display:flex; }
+  @keyframes sheetUp { from { transform:translateY(100%); } to { transform:none; } }
+  .sheet-grip {
+    width:38px; height:5px; border-radius:3px;
+    background:rgba(120,120,128,.26);
+    margin:10px auto 0; flex-shrink:0;
+  }
+  .sheet-head {
+    padding:13px 20px 11px;
+    display:flex; align-items:center; gap:9px;
+    border-bottom:1px solid var(--hairline);
+    flex-shrink:0;
+  }
+  .sheet-head h3 { font-size:15px; font-weight:700; letter-spacing:-.3px; flex:1; }
+  .sheet-body { flex:1; overflow-y:auto; padding:15px 20px 30px; }
+  .sheet-x {
+    width:28px; height:28px; border-radius:50%; border:none;
+    background:rgba(120,120,128,.13); color:var(--ink-3);
+    font-size:13px; cursor:pointer; flex-shrink:0;
+  }
+
+  .notes-sec { margin-bottom:22px; }
+  .notes-sec h4 {
+    font-size:12.5px; font-weight:700; margin-bottom:7px;
+    display:flex; align-items:center; gap:6px; letter-spacing:-.1px;
+  }
+  .notes-sec h4 span {
+    font-size:9.5px; font-weight:700; color:#fff;
+    background:linear-gradient(150deg,#ffbe5c,var(--brand));
+    border-radius:6px; padding:2px 6px; flex-shrink:0;
+  }
+  .notes-sec p { font-size:11.5px; color:var(--ink-2); line-height:1.75; }
+  .notes-sec .where {
+    margin-top:6px; font-size:11px; color:var(--brand);
+    background:rgba(255,247,237,.9);
+    border:1px solid var(--brand-line);
+    border-radius:9px; padding:7px 10px; line-height:1.58;
+  }
+
+  .toast {
+    position:absolute; left:50%; transform:translateX(-50%) translateY(10px);
+    bottom:32px; z-index:200;
+    background:rgba(28,28,30,.86);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    color:#fff; font-size:12.5px; font-weight:500;
+    padding:10px 17px; border-radius:14px;
+    opacity:0; pointer-events:none;
+    transition:opacity .22s, transform .22s;
+    max-width:78%; text-align:center; line-height:1.5;
+    box-shadow:0 8px 24px rgba(0,0,0,.24);
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Home Indicator */
+  .home-indicator {
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:136px; height:5px; border-radius:3px;
+    background:rgba(28,28,30,.26);
+    z-index:150; pointer-events:none;
+  }
+
+  @media (max-width: 460px) {
+    body { padding:0; background:#fdfdff; }
+    .phone {
+      width:100%; height:100vh; height:100dvh;
+      border-radius:0; box-shadow:none;
+    }
+    .island { display:none; }
+    .statusbar { height:48px; padding:0 22px 8px; }
+  }
+</style>
+</head>
+<body data-role="teacher">
+
+<div class="phone">
+  <div class="island"></div>
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="right">
+      <div class="sb-bar" style="height:6px;"></div>
+      <div class="sb-bar" style="height:9px;"></div>
+      <div class="sb-bar" style="height:11px;"></div>
+      <span style="font-size:10px;margin-left:3px;font-weight:600;">100%</span>
+      <button class="notes-btn" onclick="openNotes()" title="设计说明">?</button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ==================== S0 欢迎 ==================== -->
+    <div id="s0" class="screen active">
+      <div class="welcome">
+        <div class="brand-mark">🎓</div>
+        <h2>把你的课，<br>变成会讲课的分身</h2>
+        <div class="lede">
+          不用训练、不用标注。<br>
+          你手上已有的讲义和录课，够它开口了。
+        </div>
+
+        <div class="promise-list">
+          <div class="promise">
+            <div class="promise-ic">✓</div>
+            <div>
+              <div class="promise-t">三份材料就能开工</div>
+              <div class="promise-d">不是「上传越多越好」。三份先跑起来，剩下的边用边加。</div>
+            </div>
+          </div>
+          <div class="promise">
+            <div class="promise-ic">✓</div>
+            <div>
+              <div class="promise-t">它说的每句话都能查到你出处</div>
+              <div class="promise-d">学生看到的是「你在讲义第 2 页说过」，不是一段来路不明的回答。</div>
+            </div>
+          </div>
+          <div class="promise">
+            <div class="promise-ic">✓</div>
+            <div>
+              <div class="promise-t">你随时能改，也能关掉</div>
+              <div class="promise-d">它对你的画像你都能改。没讲过的，它会说没讲过。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="honest">
+          <b>先说清楚：</b>它现在不会「越用越像你」——那需要长期数据和训练。这一版它做的是
+          <b>忠实引用你讲过的话</b>，做不到的地方会明说。这个承诺是能验证的。
+        </div>
+
+        <div style="height:20px;"></div>
+        <button class="btn-primary" onclick="goStep(1)">开始 · 约 3 分钟</button>
+      </div>
+    </div>
+
+    <!-- ==================== S1 选来源 ==================== -->
+    <div id="s1" class="screen">
+      <div class="page-head">
+        <button class="back-btn" onclick="goStep(0)">‹</button>
+        <div style="flex:1;">
+          <h1>你手上有什么</h1>
+          <div class="sub">选你有的就行，勾上的才会读</div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="steps-top">
+          <span>第 <b>1</b> / 3 步 · 选材料</span>
+          <span>约 30 秒</span>
+        </div>
+        <div class="steps-bar"><i style="width:33%"></i></div>
+        <div class="steps-label">
+          <span class="on">选材料</span><span>看初稿</span><span>试一下</span>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="pad">
+
+          <div class="source on" onclick="toggleSource(this)" data-key="plan">
+            <div class="source-check">✓</div>
+            <div class="source-body">
+              <div class="source-t">我的讲义 / 课案 <span class="badge">最有用</span></div>
+              <div class="source-d">.md / .txt 直接读。这是它讲课时最主要的依据。</div>
+            </div>
+          </div>
+
+          <div class="source on" onclick="toggleSource(this)" data-key="video">
+            <div class="source-check">✓</div>
+            <div class="source-body">
+              <div class="source-t">我的录课文案 / 视频 <span class="badge" id="videoBadge">已找到 0 条</span></div>
+              <div class="source-d">从你的视频号和 B 站自动扒的字幕，你确认一下就行。</div>
+            </div>
+          </div>
+
+          <div class="source on" onclick="toggleSource(this)" data-key="qa">
+            <div class="source-check">✓</div>
+            <div class="source-body">
+              <div class="source-t">我以前答过的学生问题 <span class="badge warn">建议勾上</span></div>
+              <div class="source-d">这些最能体现你的说话方式——怎么追问、怎么举例。</div>
+            </div>
+          </div>
+
+          <div class="source" onclick="toggleSource(this)" data-key="public">
+            <div class="source-check">✓</div>
+            <div class="source-body">
+              <div class="source-t">公开信息 <span class="badge warn">可选</span></div>
+              <div class="source-d">百科、机构年报等。只用来补事实，不会当成你的观点。</div>
+            </div>
+          </div>
+
+          <div class="count-box" id="countBox">
+            <div class="n" id="countN">—</div>
+            <div class="txt" id="countTxt">
+              正在读取材料…
+            </div>
+          </div>
+
+          <div style="height:14px;"></div>
+          <button class="btn-primary" onclick="startParse()">读这些材料</button>
+          <div style="height:10px;"></div>
+          <button class="btn-ghost" onclick="openUpload()">＋ 上传一份材料</button>
+          <div style="height:10px;"></div>
+          <button class="btn-ghost" onclick="toast('可以，先用 3 份最核心的跑起来')">
+            我只想先传 3 份
+          </button>
+          <div style="height:18px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== S2 解析中 ==================== -->
+    <div id="s2" class="screen">
+      <div class="parsing">
+        <div class="parse-ring"></div>
+        <div class="parse-title">正在读你的材料</div>
+        <div class="parse-steps" id="parseSteps">
+          <div class="parse-step" data-i="0"><span class="dot"></span>读讲义与课案</div>
+          <div class="parse-step" data-i="1"><span class="dot"></span>对齐录课文案</div>
+          <div class="parse-step" data-i="2"><span class="dot"></span>找你的教学主张</div>
+          <div class="parse-step" data-i="3"><span class="dot"></span>总结你的说话方式</div>
+          <div class="parse-step" data-i="4"><span class="dot"></span>生成分身初稿</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== S3 初稿画像 ==================== -->
+    <div id="s3" class="screen">
+      <div class="page-head">
+        <button class="back-btn" onclick="goStep(1)">‹</button>
+        <div style="flex:1;">
+          <h1>分身初稿</h1>
+          <div class="sub">每一条都能改 · 括号里是依据</div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="steps-top">
+          <span>第 <b>2</b> / 3 步 · 看初稿</span>
+          <span>改完就继续</span>
+        </div>
+        <div class="steps-bar"><i style="width:66%"></i></div>
+        <div class="steps-label">
+          <span>选材料</span><span class="on">看初稿</span><span>试一下</span>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="pad">
+
+          <div class="draft-head">
+            <div class="t" id="draftHeadTitle">读完材料，它现在是这样</div>
+            <div class="d">这是草稿，不是定稿。哪条不对就点「改一下」。</div>
+          </div>
+
+          <div class="trait">
+            <div class="trait-top">
+              <div class="trait-ic" style="background:rgba(255,247,237,.95);color:#c2410c;border:1px solid rgba(253,186,116,.5);">◎</div>
+              <div class="trait-name">教学主张</div>
+              <button class="trait-fix" onclick="toast('可以在这里改，改完立刻生效')">改一下</button>
+            </div>
+            <div class="trait-body">
+              作文不是靠灵感，是靠<b>方法</b>。核心是「矛盾二分法」——把题目里对立的两面拆开，
+              再找它们的关系，思辨就有了落点。<span class="hl">反对套路和模板化</span>，
+              反对只背素材不动脑。
+            </div>
+            <div class="conf-row">
+              <div class="conf"><i style="width:92%"></i></div>
+              <span class="conf-n">92%</span>
+            </div>
+            <div class="trait-src">
+              <div class="q">依据：<b>《矛盾二分》教材开篇</b>「我不教模板，我教你怎么想」；<b>录课 32 条</b>里有 11 次提到「二分」</div>
+            </div>
+          </div>
+
+          <div class="trait">
+            <div class="trait-top">
+              <div class="trait-ic" style="background:rgba(239,246,255,.95);color:#1d4ed8;border:1px solid rgba(191,219,254,.8);">💬</div>
+              <div class="trait-name">说话方式</div>
+              <button class="trait-fix" onclick="toast('可以在这里改，改完立刻生效')">改一下</button>
+            </div>
+            <div class="trait-body">
+              先<b>追问一句</b>，再给答案。常用「你觉得呢」「先别急」开头。
+              举例偏好<b>课本人物</b>（孔乙己、李子柒），不太用名人故事。
+              语气直接，<span class="hl">会指出学生想偷懒的地方</span>。
+            </div>
+            <div class="conf-row">
+              <div class="conf"><i style="width:86%"></i></div>
+              <span class="conf-n">86%</span>
+            </div>
+            <div class="trait-src">
+              <div class="q">依据：<b>17 条学生问答记录</b>里，14 次先反问再答；<b>孔乙己</b>在素材里出现 23 次</div>
+            </div>
+          </div>
+
+          <div class="trait">
+            <div class="trait-top">
+              <div class="trait-ic" style="background:rgba(236,253,245,.95);color:#047857;border:1px solid rgba(167,243,208,.9);">📚</div>
+              <div class="trait-name">常讲的例子</div>
+              <button class="trait-fix" onclick="toast('可以在这里改，改完立刻生效')">改一下</button>
+            </div>
+            <div class="trait-body">
+              <b>孔乙己</b>（讲「被标签化的人」）、<b>李子柒</b>（讲「选择的意义」）、
+              <b>《活着》</b>（讲「承受与幸福」）。
+            </div>
+            <div class="conf-row">
+              <div class="conf"><i style="width:78%"></i></div>
+              <span class="conf-n">78%</span>
+            </div>
+            <div class="trait-src">
+              <div class="q">依据：<b>素材库 47 份</b>中这三个例子复用率最高；<b>录课文案</b>里各出现 5–23 次</div>
+            </div>
+          </div>
+
+          <div class="trait">
+            <div class="trait-top">
+              <div class="trait-ic" style="background:rgba(250,245,255,.95);color:#7c3aed;border:1px solid rgba(233,213,255,.9);">❓</div>
+              <div class="trait-name">学生最常问</div>
+              <button class="trait-fix" onclick="toast('可以在这里改，改完立刻生效')">改一下</button>
+            </div>
+            <div class="trait-body">
+              审题抓不住重点、不知道怎么选材、写了议论但不像记叙文。
+            </div>
+            <div class="conf-row">
+              <div class="conf low"><i style="width:64%"></i></div>
+              <span class="conf-n">64%</span>
+            </div>
+            <div class="trait-src">
+              <div class="q">依据：<b>问答记录</b>里这三类占 71%。信心一般，只作参考</div>
+            </div>
+          </div>
+
+          <div class="limit">
+            <div class="limit-t">⚠️ 它现在还不知道这些</div>
+            <ul>
+              <li>你今年具体的教学进度和班级情况</li>
+              <li>你对 2026 新高考卷的判断（材料里没有）</li>
+              <li>你私下跟学生说过、但没录下来的话</li>
+            </ul>
+          </div>
+
+          <button class="btn-primary" onclick="goStep(4)">就这样，试一下</button>
+          <div style="height:10px;"></div>
+          <button class="btn-ghost" onclick="toast('可以继续加材料，随时重跑')">
+            我还想再加点材料
+          </button>
+          <div style="height:18px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== S4 试聊 ==================== -->
+    <div id="s4" class="screen">
+      <div class="page-head">
+        <button class="back-btn" onclick="goStep(3)">‹</button>
+        <div style="flex:1;">
+          <h1>试一下</h1>
+          <div class="sub">用学生的口吻问，看它答得像不像你</div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="steps-top">
+          <span>第 <b>3</b> / 3 步 · 试一下</span>
+          <span>问够就发布</span>
+        </div>
+        <div class="steps-bar"><i style="width:100%"></i></div>
+        <div class="steps-label">
+          <span>选材料</span><span>看初稿</span><span class="on">试一下</span>
+        </div>
+      </div>
+
+      <div class="testbanner">
+        <span class="ic">👀</span>
+        <span class="txt">现在是<b>学生视角</b>。学生问什么，它怎么答，你都能看到。</span>
+      </div>
+
+      <div class="scroll" id="testScroll">
+        <div class="chat-stream" id="testStream"></div>
+      </div>
+
+      <div class="input-bar">
+        <textarea id="testInput" rows="1" placeholder="以学生口吻问一句…"></textarea>
+        <button class="go" onclick="testSend()">↑</button>
+      </div>
+    </div>
+
+    <!-- ==================== S5 发布 ==================== -->
+    <div id="s5" class="screen">
+      <div class="page-head">
+        <div style="flex:1;">
+          <h1>发布了</h1>
+          <div class="sub">把这个码给学生，他们就能进来</div>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="pad" style="padding-top:20px;">
+
+          <div class="classcode">
+            <div class="lbl">高二（3）班 · 班级码</div>
+            <div class="code">6 3 8 4 2 1</div>
+            <div class="note">学生打开小程序，输这个码就进你的班</div>
+          </div>
+
+          <div class="preview-shell">
+            <div class="preview-label">📱 学生端现在长这样</div>
+            <div class="preview-phone">
+              <div class="pv-head">
+                <div class="n">下午好</div>
+                <div class="s">这是叁月老师的分身，读过他 47 份讲义和录课</div>
+              </div>
+              <div class="pv-body">
+                <div class="pv-notice">
+                  <div class="t">叁月老师布置了《和解》记叙文</div>
+                  <div class="s">截止周日 22:00</div>
+                </div>
+                <div class="pv-scene">
+                  <div class="q">我作文不会写</div>
+                  <div class="a">老师带你从头磨到尾</div>
+                </div>
+                <div class="pv-scene">
+                  <div class="q">想问问老师怎么看</div>
+                  <div class="a">用老师讲过的原话答你</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="next-list">
+            <div class="next-item">
+              <div class="next-n">1</div>
+              <div>
+                <div class="next-t">先发一篇作文让学生用起来</div>
+                <div class="next-d">空着的话，学生进来只会问一句就跑了。发布一篇，转化率差很多。</div>
+              </div>
+            </div>
+            <div class="next-item">
+              <div class="next-n">2</div>
+              <div>
+                <div class="next-t">看哪些问题它答不上来</div>
+                <div class="next-d">答不上来的问题会攒成一个清单，那就是你下次该补的材料。这比「越用越像」实际。</div>
+              </div>
+            </div>
+            <div class="next-item">
+              <div class="next-n">3</div>
+              <div>
+                <div class="next-t">每周它会问你要不要升级</div>
+                <div class="next-d">材料攒够了，才谈得上更深的学习。数据不够的时候不硬上。</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="goStep(6)">进入分身控制台</button>
+          <div style="height:10px;"></div>
+          <button class="btn-ghost" onclick="toast('已复制班级码 638421')">复制班级码</button>
+          <div style="height:18px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== S6 控制台 ==================== -->
+    <div id="s6" class="screen">
+      <div class="page-head">
+        <div style="flex:1;">
+          <h1>叁月老师的分身</h1>
+          <div class="sub">高二（3）班 · 已发布</div>
+        </div>
+        <button class="back-btn" onclick="goStep(5)" title="回到发布页">‹</button>
+      </div>
+
+      <div class="scroll">
+        <div class="pad" style="padding-top:16px;">
+
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="n" style="color:var(--brand);" id="kpiMaterials">—</div>
+              <div class="l">份<br>材料</div>
+            </div>
+            <div class="kpi">
+              <div class="n" style="color:var(--good);" id="kpiStudents">—</div>
+              <div class="l">个<br>学生问过</div>
+            </div>
+            <div class="kpi">
+              <div class="n" style="color:var(--bad);" id="kpiUnanswered">—</div>
+              <div class="l">个<br>答不上来</div>
+            </div>
+          </div>
+
+          <div class="alert" id="unansweredBox" style="display:none;">
+            <div class="alert-t" id="unansweredTitle">⚠️ 有答不上来的问题</div>
+            <div class="alert-d">
+              这不是故障，是它在诚实守规矩。攒下来的这些，正好告诉你下次该补什么材料。
+            </div>
+            <div style="margin-top:11px;" id="unansweredList"></div>
+            <button class="alert-btn" onclick="resolveTop()">
+              补一条 · 标记已处理
+            </button>
+          </div>
+
+          <div class="alert" id="unansweredEmpty"
+               style="background:rgba(240,253,244,.8);border-color:var(--good-line);">
+            <div class="alert-t" style="color:#047857;">✓ 没有答不上来的问题</div>
+            <div class="alert-d" style="color:#047857;">
+              学生问的都在你讲过的范围内。再多问出几个答不上来的，反而是好事——那说明边界探到了。
+            </div>
+          </div>
+
+          <div class="sec-title" style="margin-bottom:9px;">它现在的水平</div>
+
+          <div class="tier">
+            <div class="tier-top">
+              <span class="tier-tag l1">L1</span>
+              <span class="tier-name" id="l1Name">查得到、引得出</span>
+              <span class="tier-st" style="color:var(--good);" id="l1State">已上线</span>
+            </div>
+            <div class="tier-d" id="l1Detail">正在统计…</div>
+            <div class="tier-track"><i id="l1Bar" style="width:0%"></i></div>
+            <div class="tier-note" id="l1Note"></div>
+          </div>
+
+          <div class="tier">
+            <div class="tier-top">
+              <span class="tier-tag l2">L2</span>
+              <span class="tier-name" id="l2Name">学得像、能类推</span>
+              <span class="tier-st" style="color:var(--ink-4);" id="l2State">未开启 · 差得远</span>
+            </div>
+            <div class="tier-d" id="l2Detail">正在统计…</div>
+            <div class="tier-track"><i id="l2Bar" style="width:0%"></i></div>
+            <div class="tier-note" id="l2Note"></div>
+          </div>
+
+          <div class="sec-title" style="margin-top:20px;margin-bottom:9px;">
+            需要你看一眼
+            <span style="font-size:10px;font-weight:600;color:var(--ink-4);">不是全量监控</span>
+          </div>
+          <div id="studentList">
+            <div class="stuck-row"><div class="stuck-body">
+              <div class="stuck-d">正在读取学生…</div></div></div>
+          </div>
+
+          <div style="height:16px;"></div>
+          <button class="btn-ghost" onclick="goStep(3)">修改分身画像</button>
+          <div style="height:9px;"></div>
+          <button class="btn-ghost" style="color:var(--bad);" onclick="toast('已暂停。学生端会改回普通问答')">
+            暂停分身
+          </button>
+          <div style="height:24px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== 设计说明 ==================== -->
+  <div class="sheet-mask" id="notesMask" onclick="closeNotes()"></div>
+  <div class="sheet" id="notesSheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h3>教师端的 11 个冷启动决策</h3>
+      <button class="sheet-x" onclick="closeNotes()">✕</button>
+    </div>
+    <div class="sheet-body" id="notesBody"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="home-indicator"></div>
+</div>
+
+<script src="api.js"></script>
+<script>
+/* =========================================================
+   全局
+   ========================================================= */
+const S = {
+  step: 0,
+  sources: { plan: true, video: true, qa: true, public: false },
+  scrollLock: false,
+  testAsked: 0,
+  materialStats: { plan: 0, video: 0, qa: 0, public: 0 },
+  state: null
+};
+
+function $(id) { return document.getElementById(id); }
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function goStep(n) {
+  S.step = n;
+  for (let i = 0; i <= 6; i++) {
+    const el = $('s' + i);
+    if (el) el.classList.toggle('active', i === n);
+  }
+  if (n === 4 && !$('testStream').dataset.init) {
+    $('testStream').dataset.init = '1';
+    bindScrollLock($('testScroll'));
+    testGreet();
+  }
+}
+
+function followScroll(container) {
+  const sc = container.closest('.scroll');
+  if (!sc || S.scrollLock) return;
+  requestAnimationFrame(() => { sc.scrollTop = sc.scrollHeight; });
+}
+
+function bindScrollLock(scroller) {
+  if (!scroller) return;
+  scroller.addEventListener('scroll', () => {
+    const gap = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+    S.scrollLock = gap > 48;
+  }, { passive: true });
+}
+
+/* =========================================================
+   第 1 步：来源选择
+   ========================================================= */
+function toggleSource(el) {
+  el.classList.toggle('on');
+  S.sources[el.dataset.key] = el.classList.contains('on');
+  recalcCount();
+}
+
+function recalcCount() {
+  // 只统计真实存在的材料；勾掉的来源不计入
+  const stats = S.materialStats || { plan: 0, video: 0, qa: 0, public: 0 };
+  let n = 0;
+  Object.keys(S.sources).forEach(k => { if (S.sources[k]) n += (stats[k] || 0); });
+  $('countN').textContent = n;
+
+  if (n === 0) {
+    $('countTxt').innerHTML = '还没材料。先上传一份讲义就能开工。<br>'
+      + '<span style="color:var(--ink-4);">建议从讲义开始，它最有用。</span>';
+  } else if (n < 3) {
+    $('countTxt').innerHTML = '份材料，能跑，但会比较薄。<br>'
+      + '<span style="color:var(--ink-4);">它会经常说「我老师没讲过」。</span>';
+  } else if (n < 40) {
+    $('countTxt').innerHTML = '份材料，够开工了。<br>'
+      + '<span style="color:var(--ink-4);">继续加会更准，但不是必须。</span>';
+  } else {
+    $('countTxt').innerHTML = '份材料，相当充分。<br>'
+      + '<span style="color:var(--ink-4);">再多就要考虑归类和去重了。</span>';
+  }
+}
+
+/* =========================================================
+   真实材料统计
+   ========================================================= */
+function loadMaterials() {
+  return API.teacherMaterials().then(data => {
+    const docs = data.documents || 0;
+    // 全部材料先都算作「讲义」；真实项目里可用分类元数据细分
+    S.materialStats = { plan: docs, video: 0, qa: 0, public: 0 };
+    const vb = $('videoBadge');
+    if (vb) vb.textContent = '已找到 0 条';
+    recalcCount();
+    const dt = $('draftHeadTitle');
+    if (dt) dt.textContent = '读完 ' + docs + ' 份材料，它现在是这样';
+    return data;
+  }).catch(err => {
+    $('countN').textContent = '—';
+    $('countTxt').innerHTML = '读取材料失败：' + escapeHtml(err.message);
+    throw err;
+  });
+}
+
+function openUpload() {
+  const name = window.prompt('材料文件名（建议以 .md 结尾）', '我的讲义.md');
+  if (name === null) return;
+  const body = window.prompt('粘贴材料内容（老师原话、讲义正文都可以）');
+  if (body === null || !body.trim()) { toast('内容不能为空'); return; }
+
+  API.teacherUpload(name.trim() || 'material.md', body).then(data => {
+    toast('已上传，现在共 ' + data.documents + ' 份材料');
+    loadMaterials();
+  }).catch(err => toast('上传失败：' + err.message));
+}
+
+/* =========================================================
+   第 2 步：解析
+   ========================================================= */
+function startParse() {
+  const n = parseInt($('countN').textContent, 10);
+  if (!n) { toast('至少勾一项材料'); return; }
+
+  goStep(2);
+  const steps = [...document.querySelectorAll('.parse-step')];
+  steps.forEach(s => { s.className = 'parse-step'; s.querySelector('.dot').textContent = ''; });
+
+  let i = 0;
+  function next() {
+    if (i >= steps.length) { setTimeout(() => goStep(3), 500); return; }
+    steps.forEach((s, k) => {
+      if (k < i) { s.className = 'parse-step done'; s.querySelector('.dot').textContent = '✓'; }
+      else if (k === i) { s.className = 'parse-step doing'; s.querySelector('.dot').textContent = ''; }
+      else { s.className = 'parse-step'; s.querySelector('.dot').textContent = ''; }
+    });
+    setTimeout(() => { i++; next(); }, 720);
+  }
+  next();
+}
+
+/* =========================================================
+   思考卡
+   ========================================================= */
+let thinkSeq = 0;
+
+function runThinking(container, steps, onDone) {
+  const id = 'tk' + (++thinkSeq);
+  const card = document.createElement('div');
+  card.className = 'think-card';
+  card.id = id;
+  card.innerHTML = `
+    <div class="think-head" onclick="toggleThink('${id}')">
+      <span style="font-size:11px;">🧠</span>
+      <span class="ttl">分身在想</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="think-body"></div>`;
+  container.appendChild(card);
+  const body = card.querySelector('.think-body');
+  followScroll(container);
+
+  let i = 0;
+  function next() {
+    if (i >= steps.length) {
+      card.classList.add('done', 'collapsed');
+      card.querySelector('.ttl').textContent = '想好了 · 点开看依据';
+      followScroll(container);
+      if (onDone) onDone();
+      return;
+    }
+    const st = steps[i];
+    if (st.kind === 'judge') {
+      const row = document.createElement('div');
+      row.className = 't-step';
+      row.innerHTML = '<span class="spin"></span><span class="txt"></span>';
+      body.appendChild(row);
+      const txt = row.querySelector('.txt');
+      let c = 0;
+      (function tick() {
+        c += 3;
+        txt.textContent = st.text.slice(0, c);
+        followScroll(container);
+        if (c < st.text.length) setTimeout(tick, 32);
+        else {
+          txt.textContent = st.text;
+          const sp = row.querySelector('.spin');
+          if (sp) sp.remove();
+          setTimeout(() => { i++; next(); }, 200);
+        }
+      })();
+    } else {
+      const row = document.createElement('div');
+      row.className = 't-step tool';
+      row.innerHTML = `<span>${st.icon || '›'}</span><span>${st.label}</span><span class="meta">${st.meta || ''}</span>`;
+      body.appendChild(row);
+      followScroll(container);
+      setTimeout(() => { i++; next(); }, st.dur || 680);
+    }
+  }
+  next();
+}
+
+function toggleThink(id) {
+  const c = $(id);
+  if (c) c.classList.toggle('collapsed');
+}
+
+/* =========================================================
+   第 3 步：试聊
+   ========================================================= */
+function addUser(container, text) {
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="msg-avatar">学</div><div class="bubble"></div>`;
+  el.querySelector('.bubble').textContent = text;
+  container.appendChild(el);
+  followScroll(container);
+}
+
+function addExpert(container, html) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `<div class="msg-avatar">叁</div><div class="bubble">${html}</div>`;
+  container.appendChild(el);
+  el.querySelectorAll('.cite').forEach(c =>
+    c.addEventListener('click', () => toast('能看到它引了你的哪一段，这是关键')));
+  followScroll(container);
+  return el;
+}
+
+function testGreet() {
+  addExpert($('testStream'),
+    `我是你的分身。<br>现在你可以像学生那样问我，看看我答得像不像你。<br><br>先试一个：<b>「老师，记叙文怎么审题？」</b>`);
+}
+
+function testSend() {
+  const ta = $('testInput');
+  const v = ta.value.trim();
+  if (!v) { toast('先写一句学生的话'); return; }
+  ta.value = '';
+  S.scrollLock = false;
+  S.testAsked++;
+
+  const stream = $('testStream');
+  addUser(stream, v);
+
+  const thinking = document.createElement('div');
+  thinking.className = 'think-card';
+  thinking.innerHTML = `
+    <div class="think-head"><span style="font-size:11px;">🧠</span>
+      <span class="ttl">分身在想</span><span class="spin" style="margin-left:auto;"></span></div>`;
+  stream.appendChild(thinking);
+  followScroll(stream);
+
+  API.teacherPreview(v).then(data => {
+    thinking.remove();
+
+    const steps = [
+      { kind: 'tool', icon: '📚', label: '翻你的讲义',
+        meta: '命中 ' + (data.cites || []).length + ' 段', dur: 640 },
+      { kind: 'judge', text: data.grounded
+        ? '找到你讲过的原话了，照你的说法讲，不添材料里没有的东西。'
+        : '翻遍了也找不到你谈过这个。这个问题不能替你编，必须说没讲过。' }
+    ];
+
+    runThinking(stream, steps, () => {
+      let html = escapeHtml(data.text || '').replace(/\n/g, '<br>')
+        .replace(/\[(\d+)\]/g, '<span class="cite">$1</span>');
+      addExpert(stream, html);
+
+      if (S.testAsked >= 2) {
+        setTimeout(() => {
+          const el = document.createElement('div');
+          el.className = 'msg';
+          el.innerHTML = `
+            <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(236,253,245,.98),rgba(209,250,229,.92));color:#047857;">✓</div>
+            <div style="max-width:88%;background:rgba(240,253,244,.82);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);border:1px solid var(--good-line);border-radius:17px;padding:12px 13px;font-size:11.5px;line-height:1.68;color:#065f46;box-shadow:var(--glass-shadow-sm);">
+              这就是学生看到的。像不像你，你自己定。<br>
+              <span style="color:var(--good);font-weight:650;">觉得可以就发布，不行就回去改画像。</span>
+            </div>`;
+          stream.appendChild(el);
+          followScroll(stream);
+
+          setTimeout(() => {
+            const btn = document.createElement('div');
+            btn.className = 'msg';
+            btn.innerHTML = `
+              <div class="msg-avatar" style="background:linear-gradient(150deg,rgba(255,241,230,.98),rgba(255,224,194,.92));color:#c2410c;">→</div>
+              <div style="max-width:88%;">
+                <button class="btn-primary" style="height:42px;font-size:13px;" onclick="goStep(5)">可以了，发布给学生</button>
+              </div>`;
+            stream.appendChild(btn);
+            followScroll(stream);
+          }, 640);
+        }, 520);
+      }
+    });
+  }).catch(err => {
+    thinking.remove();
+    addExpert(stream, '<b>试聊失败。</b><br>' + escapeHtml(err.message));
+  });
+}
+
+/* =========================================================
+   控制台：全部真实数据
+   ========================================================= */
+function loadConsole() {
+  return API.teacherState().then(data => {
+    S.state = data;
+    $('kpiMaterials').textContent = data.stats.materials;
+    $('kpiStudents').textContent = data.stats.studentsAsked;
+    $('kpiUnanswered').textContent = data.stats.unanswered;
+
+    // 答不上来的清单
+    const box = $('unansweredBox');
+    const empty = $('unansweredEmpty');
+    if (data.unanswered.length) {
+      box.style.display = 'block';
+      empty.style.display = 'none';
+      $('unansweredTitle').textContent = '⚠️ 有 ' + data.stats.unanswered + ' 个问题它答不上来';
+      $('unansweredList').innerHTML = data.unanswered.map((u, i) => `
+        <div class="alert-q" ${i === data.unanswered.length - 1 ? 'style="margin-bottom:0;"' : ''}>
+          「${escapeHtml(u.question)}」<span class="who"> · ${u.askCount} 个学生问过</span>
+        </div>`).join('');
+    } else {
+      box.style.display = 'none';
+      empty.style.display = 'block';
+    }
+
+    // L1 / L2
+    $('l1Detail').textContent = data.tiers.l1.detail;
+    $('l1Bar').style.width = data.tiers.l1.progress + '%';
+    $('l1Note').textContent = '材料 ' + data.stats.materials + ' 份 · 引用准确率你自己还能复核';
+    $('l2Detail').textContent = data.tiers.l2.detail;
+    $('l2Bar').style.width = data.tiers.l2.progress + '%';
+    $('l2Note').innerHTML = '进度 ' + data.tiers.l2.progress
+      + '% · 大致需要 300+ 条真实问答。<b style="color:var(--ink-2);">不硬上，L1 已经够用。</b>';
+  }).catch(err => {
+    toast('控制台加载失败：' + err.message);
+  });
+}
+
+function loadStudents() {
+  return API.teacherStudents().then(data => {
+    const box = $('studentList');
+    if (!data.students.length) {
+      box.innerHTML = '<div class="stuck-row"><div class="stuck-body">'
+        + '<div class="stuck-d">班上还没有学生进来。</div></div></div>';
+      return;
+    }
+    box.innerHTML = data.students.map(s => `
+      <div class="stuck-row">
+        <div class="stuck-av">${escapeHtml((s.name || '学')[0])}</div>
+        <div class="stuck-body">
+          <div class="stuck-n">${escapeHtml(s.name)} · ${escapeHtml(s.stageName)}</div>
+          <div class="stuck-d">${escapeHtml(s.className)}
+            ${s.course ? ' · 《' + escapeHtml(s.course) + '》第 ' + (s.stage + 1) + ' 环节' : ''}
+            ${s.status === 'done' ? ' · 已结课' : ''}</div>
+        </div>
+        <div class="stuck-go" onclick="toast('已打开 ${escapeHtml(s.name)} 的进度')">看进度 →</div>
+      </div>`).join('');
+  }).catch(err => {
+    $('studentList').innerHTML = '<div class="stuck-row"><div class="stuck-body">'
+      + '<div class="stuck-d">读取失败：' + escapeHtml(err.message) + '</div></div></div>';
+  });
+}
+
+function resolveTop() {
+  if (!S.state || !S.state.unanswered.length) { toast('没有待处理的问题'); return; }
+  const q = S.state.unanswered[0].question;
+  API.teacherResolve(q).then(() => {
+    toast('已标记处理：' + q.slice(0, 12));
+    loadConsole();
+  }).catch(err => toast('操作失败：' + err.message));
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+(function init() {
+  const ta = $('testInput');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 76) + 'px';
+    });
+  }
+  loadMaterials();
+  loadConsole();
+  loadStudents();
+})();
+
+/* =========================================================
+   设计说明
+   ========================================================= */
+const NOTES = [
+  {
+    n: '冷启动', t: '三份材料就能开工，不做「先攒够数据」',
+    d: 'SecondMe 论文里最要紧的一条教训：数据不够时回退到 L1，别假装懂你。所以第一步就写「三份材料就能开工」，而不是「上传越多越好」。老师第一眼看到的是「够用了」，不是「你还不够」。',
+    where: '第 1 步来源页底部那条「我只想先传 3 份」。'
+  },
+  {
+    n: '来源', t: '不要求全选，勾什么读什么',
+    d: '四个来源预勾三个，第四个明确标「可选」。老师最怕的是「我东西不全，是不是用不了」。每一项都写清它有什么用，让老师能做判断而不是盲选。',
+    where: '第 1 步的四张卡，勾选会实时改下面那个数字和文案。'
+  },
+  {
+    n: '材料量', t: '数字变了，话也跟着变',
+    d: '勾 0 份说「至少勾一项」。勾 1–2 份明说「会比较薄，它会经常说没讲过」。勾 3 份以上才说「够开工了」。不要在任何材料量下都说「很好」——那是骗人，老师发布后立刻会发现。',
+    where: '第 1 步反复勾选，看橙色数字框的文案变化。'
+  },
+  {
+    n: '初稿', t: '三条就能让老师看到「它有点像我了」',
+    d: '教学主张、说话方式、常讲的例子——这三条最能产生「这是我」的感觉。每条都带原文依据（「录课 32 条里有 11 次提到二分」），让老师能核对，而不是看一段玄学描述。',
+    where: '第 3 步的四张画像卡，每张底部灰色斜体就是依据。'
+  },
+  {
+    n: '可编辑', t: '每条都有「改一下」，改完立刻生效',
+    d: '这正是 SecondMe 选 L1 的理由：L2 的参数用户改不了，L1 的记忆可以。所以画像必须可编辑，而且要在发布的必经路径上，不是藏在设置里。',
+    where: '第 3 步每张卡右上角的「改一下」。'
+  },
+  {
+    n: '信心', t: '信心低的那条，明说只作参考',
+    d: '「学生最常问」只有 64%，所以标成灰条并写「信心一般，只作参考」。低信心不隐藏、不装作确定——用户一旦发现你装作确定，信任就崩了，很难修。',
+    where: '第 3 步第四张卡，进度条是灰的。'
+  },
+  {
+    n: '诚实声明', t: '专门有一块写「它现在还不知道这些」',
+    d: '这是整个流程里最重要的一块 UI。主动说清它不懂什么（教学进度、新高考判断、没录下来的话），比任何宣传语都更能建立信任。老师知道边界，才不会在学生面前被它坑。',
+    where: '第 3 步底部那块灰卡「⚠️ 它现在还不知道这些」。'
+  },
+  {
+    n: '试聊', t: '教师以学生视角考自己，不是看演示',
+    d: '不做一个「演示视频」，而是让老师自己用学生的口吻问。这是唯一能让老师判断「像不像我」的方式。答完还会明确提示「这就是学生看到的」。',
+    where: '第 3 步点「试一下」，随便问两句。'
+  },
+  {
+    n: '发布', t: '发布页当场给学生端预览',
+    d: '老师最关心「学生那边到底看到什么」。所以发布页直接嵌一个学生端缩小版，而不是让老师自己想象。这也是两端能对上的关键——同一套视觉和话术。',
+    where: '发布页中间那个手机预览。'
+  },
+  {
+    n: 'L1/L2', t: '把「学得像」的进度诚实摊开',
+    d: 'L1「查得到、引得出」标已上线，L2「学得像、能类推」标「未开启 · 差得远」，进度 11%，并写「不硬上，L1 已经够用」。这比含糊说「持续进化」诚实得多，也避免老师对效果有不合理期待。',
+    where: '控制台「它现在的水平」两块。'
+  },
+  {
+    n: '答不上来', t: '答不上来的问题是最有价值的资产',
+    d: '8 个答不上来的问题不是故障，是「下次该补什么材料」的清单。把它做成控制台的第一块内容，并给一个「录一段话补上」的动作——这就把冷启动从一次性流程变成了持续循环。',
+    where: '控制台顶部橙色那块，点「录一段话补上」。'
+  },
+  {
+    n: '视觉', t: '液态玻璃 + 扎染渐变，为了「可信」而不是「好看」',
+    d: '教育产品的信任感来自「轻、透、可核对」。玻璃层让卡片浮在内容之上而不是压在内容之上；扎染底用极低饱和的白、米、淡蓝、淡绿，只有一处暖橙留给品牌和动作。不用高饱和色块，是因为那会让学生觉得这是个营销页，而不是老师的工具。',
+    where: '整体视觉。所有卡片都是半透明磨砂，底下的渐变一直能透出来。'
+  }
+];
+
+function openNotes() {
+  $('notesBody').innerHTML = NOTES.map(x => `
+    <div class="notes-sec">
+      <h4><span>${x.n}</span>${x.t}</h4>
+      <p>${x.d}</p>
+      <div class="where">在原型里看：${x.where}</div>
+    </div>
+  `).join('');
+  $('notesMask').classList.add('open');
+  $('notesSheet').classList.add('open');
+}
+function closeNotes() {
+  $('notesMask').classList.remove('open');
+  $('notesSheet').classList.remove('open');
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+(function init() {
+  const ta = $('testInput');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 76) + 'px';
+    });
+  }
+  recalcCount();
+})();
+</script>
+</body>
+</html>
