@@ -481,37 +481,31 @@ def teacher_close_course(uid, course_id):
 
 
 def student_suggestions(uid):
-    """从老师真实语料里抽话题做推荐，统一转成学生口吻的问句。
+    """推荐问句：从老师语料里找出真正讲过的主题，拼成学生口吻的问句。
 
-    没有语料时返回空，前端显示「先上传材料」的引导而不是编一句假的。
+    只推荐「老师确实讲过」的（每个候选都要能检索命中），
+    否则学生点了会得到「老师没讲过」，体验更差。
     """
-    import re as _re
     tch = _teacher(uid)
-    hits = brain.retrieve("作文 怎么 写 审题 立意 结构 描写 选材", top_k=12, min_score=0)
+
+    # 候选主题词 + 对应的学生口吻问法
+    TOPICS = [
+        ("矛盾二分", "老师，矛盾二分法到底是什么？"),
+        ("审题", "老师，审题该怎么找限定词？"),
+        ("立意", "老师，立意怎么才写得深？"),
+        ("选材", "老师，素材该怎么积累和用？"),
+        ("结构", "老师，作文结构该怎么搭？"),
+        ("描写", "老师，描写怎么才能写具体？"),
+        ("记叙文", "老师，记叙文和议论文怎么选？"),
+        ("句模", "老师，句模本该怎么用？"),
+    ]
+
     out = []
-    seen = set()
-    for h in hits:
-        t = h["text"].strip()
-        # 太长的不像问句；太短的没信息量
-        if not (8 <= len(t) <= 24):
-            continue
-        # 连续陈述/列举不像一个话题
-        if _re.search(r"[。；、]", t[:-1]):
-            continue
-        # 去掉 markdown 残留的标题前缀「XX：」
-        t = _re.sub(r"^[^：]{2,6}：", "", t).strip()
-        # 「关于X」开头的偏书面，去掉前缀
-        t = _re.sub(r"^关于", "", t).strip()
-        if len(t) < 6:
-            continue
-        key = t[:8]
-        if key in seen:
-            continue
-        seen.add(key)
-        # 转成学生口吻的问句
-        if not t.endswith(("怎么选", "怎么写", "怎么办", "怎么分")):
-            t = t + "怎么办？"
-        out.append(t)
+    for kw, question in TOPICS:
+        probe = kw if len(kw) >= 3 else kw + "怎么写"
+        if brain.retrieve(probe, top_k=1):
+            out.append(question)
         if len(out) >= 3:
             break
+
     return {"suggestions": out, "teacherName": tch["name"] if tch else "老师"}

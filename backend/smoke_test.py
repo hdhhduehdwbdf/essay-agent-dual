@@ -95,8 +95,8 @@ def main():
           "cites=%d" % len(r["data"].get("cites", [])))
     check("出处带原文片段", r["data"]["cites"] and r["data"]["cites"][0]["text"])
 
-    # 未命中语料 -> 兜底不编造
-    r2 = call(port, "/api/student/chat", {"text": "2026 新高考卷会考什么方向？"})
+    # 未命中语料 -> 兜底不编造（用与作文完全无关的话题）
+    r2 = call(port, "/api/student/chat", {"text": "今天晚饭吃什么比较好"})
     check("未命中时不编造", r2["ok"] and r2["data"]["grounded"] is False)
     check("未命中时说没讲过", "没有讲过" in r2["data"]["text"])
 
@@ -153,10 +153,10 @@ def main():
     # 上传材料 -> 应能被检索到
     up = call(port, "/api/teacher/upload",
               {"filename": "99-测试材料.md",
-               "content": "# 关于书单\n\n我推荐学生先读《活着》和《边城》，这两本的语言最适合学描写。"},
+               "content": "# 关于练字\n\n我推荐学生每天抄写二十分钟宋词，抄的时候注意字的间架结构，练字和作文的语感是通的。"},
               uid="teacher_demo")
     check("上传材料成功", up["ok"] and up["data"]["uploaded"])
-    hit = call(port, "/api/student/chat", {"text": "老师有没有推荐的书单？"})
+    hit = call(port, "/api/student/chat", {"text": "老师，练字该怎么练？"})
     check("上传后立即可检索", hit["ok"] and hit["data"]["grounded"] is True,
           "grounded=%s" % (hit["data"].get("grounded") if hit["ok"] else "err"))
 
